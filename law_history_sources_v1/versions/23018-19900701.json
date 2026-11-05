@@ -1,0 +1,10 @@
+{
+  "name": "소방법시행령",
+  "master": "23018",
+  "effectiveDate": "19900701",
+  "sha256": "62b35907c1e8f6dea07e9d5cb464afd1280d9280a5860064f65f5e17a97630e7",
+  "source": "objects/62b35907c1e8f6dea07e9d5cb464afd1280d9280a5860064f65f5e17a97630e7.xml",
+  "articles": 93,
+  "annexItems": 6,
+  "reviewStatus": "pending"
+}
