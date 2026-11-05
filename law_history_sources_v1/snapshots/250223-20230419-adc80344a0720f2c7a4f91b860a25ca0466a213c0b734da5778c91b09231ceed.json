@@ -1,0 +1,10 @@
+{
+  "name": "소방시설 설치 및 관리에 관한 법률 시행규칙",
+  "master": "250223",
+  "effectiveDate": "20230419",
+  "sha256": "adc80344a0720f2c7a4f91b860a25ca0466a213c0b734da5778c91b09231ceed",
+  "source": "objects/adc80344a0720f2c7a4f91b860a25ca0466a213c0b734da5778c91b09231ceed.xml",
+  "articles": 53,
+  "annexItems": 46,
+  "reviewStatus": "pending"
+}
