@@ -1,0 +1,10 @@
+{
+  "name": "소방시설공사업법 시행규칙",
+  "master": "93962",
+  "effectiveDate": "20090601",
+  "sha256": "e4d0b6b816faa552380d60e30c04aa3dd6ecb8b022120818e8e799afcd7af8f8",
+  "source": "objects/e4d0b6b816faa552380d60e30c04aa3dd6ecb8b022120818e8e799afcd7af8f8.xml",
+  "articles": 46,
+  "annexItems": 50,
+  "reviewStatus": "pending"
+}
