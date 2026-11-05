@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-05T11:35:24.763976+09:00",
+  "calculationRulesChanged": false,
+  "laws": [
+    {
+      "name": "소방시설 설치 및 관리에 관한 법률 시행령",
+      "master": "290451",
+      "effectiveDate": "20261002",
+      "sha256": "0f6d402a64c602a668f5b8c1f39fefb22982e4ad1c1ab61bf14979a53657bd61",
+      "file": "installation-decree.xml",
+      "articles": 63,
+      "annexItems": 10,
+      "annex456": {
+        "4": "본문 포함",
+        "5": "본문 포함",
+        "6": "본문 포함"
+      },
+      "result": "최초 기준 저장"
+    },
+    {
+      "name": "소방시설공사업법 시행령",
+      "master": "287253",
+      "effectiveDate": "20260701",
+      "sha256": "5a5fcd1711b0c3de110af8a64db542247a4dd935f015257dd81a9283ce3be9e6",
+      "file": "construction-decree.xml",
+      "articles": 43,
+      "annexItems": 6,
+      "annex456": {},
+      "result": "최초 기준 저장"
+    }
+  ]
+}
