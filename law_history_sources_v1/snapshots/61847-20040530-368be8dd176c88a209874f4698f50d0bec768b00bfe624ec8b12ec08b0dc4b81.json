@@ -1,0 +1,10 @@
+{
+  "name": "소방시설공사업법시행령",
+  "master": "61847",
+  "effectiveDate": "20040530",
+  "sha256": "368be8dd176c88a209874f4698f50d0bec768b00bfe624ec8b12ec08b0dc4b81",
+  "source": "objects/368be8dd176c88a209874f4698f50d0bec768b00bfe624ec8b12ec08b0dc4b81.xml",
+  "articles": 21,
+  "annexItems": 5,
+  "reviewStatus": "pending"
+}
