@@ -1,0 +1,37 @@
+name: Law source collection v1
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 22 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: law-source-collection-v1
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Read repository files
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Collect and compare law sources
+        env:
+          LAW_API_OC: ${{ secrets.LAW_API_OC }}
+        run: python3 law_source_collect_v1.py
+      - name: Save collected sources
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git add -- law_sources_v1/
+          if git diff --cached --quiet; then
+            echo 'No source changes to save.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Record collected law sources (rules unchanged)'
+          git push origin "HEAD:$TARGET_BRANCH"
