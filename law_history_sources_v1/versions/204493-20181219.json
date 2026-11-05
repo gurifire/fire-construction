@@ -1,0 +1,10 @@
+{
+  "name": "소방시설공사업법",
+  "master": "204493",
+  "effectiveDate": "20181219",
+  "sha256": "9b9257d477ccefd9bb9f47354b77ff37079cb662b9fa198e00723336d8357635",
+  "source": "objects/9b9257d477ccefd9bb9f47354b77ff37079cb662b9fa198e00723336d8357635.xml",
+  "articles": 64,
+  "annexItems": 0,
+  "reviewStatus": "pending"
+}
