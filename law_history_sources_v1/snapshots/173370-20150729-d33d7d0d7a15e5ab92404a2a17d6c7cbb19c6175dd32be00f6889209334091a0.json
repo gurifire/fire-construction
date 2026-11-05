@@ -1,0 +1,10 @@
+{
+  "name": "소방시설 설치ㆍ유지 및 안전관리에 관한 법률 시행령",
+  "master": "173370",
+  "effectiveDate": "20150729",
+  "sha256": "d33d7d0d7a15e5ab92404a2a17d6c7cbb19c6175dd32be00f6889209334091a0",
+  "source": "objects/d33d7d0d7a15e5ab92404a2a17d6c7cbb19c6175dd32be00f6889209334091a0.xml",
+  "articles": 68,
+  "annexItems": 11,
+  "reviewStatus": "pending"
+}
