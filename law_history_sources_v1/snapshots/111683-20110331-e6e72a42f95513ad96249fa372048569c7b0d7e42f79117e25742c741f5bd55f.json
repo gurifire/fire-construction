@@ -1,0 +1,10 @@
+{
+  "name": "소방시설 설치유지 및 안전관리에 관한 법률 시행규칙",
+  "master": "111683",
+  "effectiveDate": "20110331",
+  "sha256": "e6e72a42f95513ad96249fa372048569c7b0d7e42f79117e25742c741f5bd55f",
+  "source": "objects/e6e72a42f95513ad96249fa372048569c7b0d7e42f79117e25742c741f5bd55f.xml",
+  "articles": 57,
+  "annexItems": 47,
+  "reviewStatus": "pending"
+}
