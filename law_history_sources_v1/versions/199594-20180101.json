@@ -1,0 +1,10 @@
+{
+  "name": "소방시설공사업법 시행령",
+  "master": "199594",
+  "effectiveDate": "20180101",
+  "sha256": "09275e8c1dde5d90a391eb76bbf511f5befa6f70c3075181e8c19de0ca2b75c0",
+  "source": "objects/09275e8c1dde5d90a391eb76bbf511f5befa6f70c3075181e8c19de0ca2b75c0.xml",
+  "articles": 37,
+  "annexItems": 6,
+  "reviewStatus": "pending"
+}
