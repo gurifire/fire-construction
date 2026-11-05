@@ -1,0 +1,35 @@
+name: Law history sync v1
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '27 22 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: law-history-sync-v1
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Collect historical, current and announced versions
+        id: collect
+        env:
+          LAW_API_OC: ${{ secrets.LAW_API_OC }}
+        run: python3 law_history_sync_v1.py
+      - name: Save collected sources
+        if: ${{ !cancelled() && (steps.collect.outcome == 'success' || steps.collect.outcome == 'failure') }}
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ ! -d law_history_sources_v1 ]; then exit 0; fi
+          git add -- law_history_sources_v1/
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Collect law history sources for review'
+          git pull --rebase origin "$TARGET_BRANCH"
+          git push origin "HEAD:$TARGET_BRANCH"
