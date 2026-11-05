@@ -1,0 +1,10 @@
+{
+  "name": "소방시설설치유지및안전관리에관한법률",
+  "master": "59717",
+  "effectiveDate": "20040530",
+  "sha256": "ec2c276131be1a4d369fd6e66e58aecb9082322b80c24e690f51ceb5293ade31",
+  "source": "objects/ec2c276131be1a4d369fd6e66e58aecb9082322b80c24e690f51ceb5293ade31.xml",
+  "articles": 66,
+  "annexItems": 0,
+  "reviewStatus": "pending"
+}

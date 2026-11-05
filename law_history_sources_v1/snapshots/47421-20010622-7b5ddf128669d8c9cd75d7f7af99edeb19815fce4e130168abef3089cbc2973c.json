@@ -1,0 +1,10 @@
+{
+  "name": "소방법시행규칙",
+  "master": "47421",
+  "effectiveDate": "20010622",
+  "sha256": "7b5ddf128669d8c9cd75d7f7af99edeb19815fce4e130168abef3089cbc2973c",
+  "source": "objects/7b5ddf128669d8c9cd75d7f7af99edeb19815fce4e130168abef3089cbc2973c.xml",
+  "articles": 156,
+  "annexItems": 154,
+  "reviewStatus": "pending"
+}

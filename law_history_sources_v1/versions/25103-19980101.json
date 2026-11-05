@@ -1,0 +1,10 @@
+{
+  "name": "소방법시행령",
+  "master": "25103",
+  "effectiveDate": "19980101",
+  "sha256": "dc6d52599c698f14f2743457db68da17f22e35c9020c121ada40ce4f48e5ea4e",
+  "source": "objects/dc6d52599c698f14f2743457db68da17f22e35c9020c121ada40ce4f48e5ea4e.xml",
+  "articles": 107,
+  "annexItems": 8,
+  "reviewStatus": "pending"
+}
