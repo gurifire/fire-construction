@@ -1,0 +1,10 @@
+{
+  "name": "소방법",
+  "master": "6068",
+  "effectiveDate": "19800104",
+  "sha256": "1b591aaa588ac180a2dd95e4c27baa0506785a35b57034ebd03444e1337dbf1b",
+  "source": "objects/1b591aaa588ac180a2dd95e4c27baa0506785a35b57034ebd03444e1337dbf1b.xml",
+  "articles": 97,
+  "annexItems": 0,
+  "reviewStatus": "pending"
+}
