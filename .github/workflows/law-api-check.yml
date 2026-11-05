@@ -1,0 +1,21 @@
+name: Law API connection check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Read repository files
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check law list and body access
+        env:
+          LAW_API_OC: ${{ secrets.LAW_API_OC }}
+        run: python3 law_api_check.py
