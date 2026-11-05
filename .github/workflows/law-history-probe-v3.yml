@@ -1,0 +1,38 @@
+name: Law history probe v3
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Probe 1980 baseline
+        env:
+          LAW_API_OC: ${{ secrets.LAW_API_OC }}
+        run: python3 law_history_probe_v3.py
+      - name: Save source candidates and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: law-history-probe-1980-v3
+          path: law_history_probe_output/
+          if-no-files-found: warn
+      - name: Show probe report in Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## 1980년 법령 연혁 수집 진단'
+            if [ -f law_history_probe_output/report.json ]; then
+              echo '```json'
+              cat law_history_probe_output/report.json
+              echo
+              echo '```'
+            else
+              echo 'report.json이 생성되지 않았습니다. Probe 1980 baseline 단계의 로그를 확인하세요.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
