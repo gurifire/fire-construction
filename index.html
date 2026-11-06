@@ -195,6 +195,65 @@ details{border-top-color:#dce5d7}summary{font-size:14px;font-weight:600;line-hei
 #law-bundle-laws{max-height:60vh;max-height:60dvh;overflow-y:auto;overscroll-behavior-y:contain}
 #law-bundle-laws .law-history-list{max-height:35vh;max-height:35dvh;overflow-y:auto;overscroll-behavior-y:contain;padding-inline-end:8px;scrollbar-gutter:stable}
 }
+</style><style id="responsive-alignment">
+@media screen{
+  .workspace-nav>div>:is(a[href="#form"],#nav-input,#nav-result){
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    min-height:44px;
+    margin:0;
+    padding:0;
+    border-radius:6px;
+    font:inherit;
+    font-size:12px;
+    font-weight:650;
+    line-height:1.25;
+  }
+  .workspace-nav>div>:is(a[href="#form"],#nav-input,#nav-result)>span{
+    margin:0;
+    line-height:inherit;
+  }
+  .workspace-nav>div>a[href="#guide"]{
+    display:inline-flex;
+    align-items:center;
+    min-height:44px;
+    line-height:1.25;
+  }
+  #law-version,#law-date,.workspace-nav #law-bundle-detail>summary{
+    height:44px;
+    min-height:44px;
+    box-sizing:border-box;
+  }
+  .workspace-heading h2{font-size:clamp(19px,2.4vw,23px)}
+  .card{padding:clamp(16px,3vw,28px)}
+  .card .grid>label{overflow-wrap:anywhere}
+  .actions button{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+  .counts span{display:inline-flex;align-items:center;min-height:36px}
+}
+@media screen and (max-width:1050px){
+  .workspace-nav>div{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr)) auto;
+    gap:4px 10px;
+  }
+  .workspace-nav>div>:is(a[href="#form"],#nav-input,#nav-result,a[href="#guide"]){grid-row:1}
+  .workspace-nav>div>a[href="#form"]{grid-column:1}
+  .workspace-nav>div>#nav-input{grid-column:2}
+  .workspace-nav>div>#nav-result{grid-column:3}
+  .workspace-nav>div>a[href="#guide"]{grid-column:4;justify-self:end}
+  .workspace-nav .nav-law-version{grid-column:1/-1;grid-row:2}
+}
+@media screen and (max-width:640px){
+  .workspace-nav>div{padding:6px clamp(8px,3vw,16px) 10px;column-gap:5px}
+  .workspace-nav>div>:is(a[href="#form"],#nav-input,#nav-result){gap:3px;font-size:10px;letter-spacing:0}
+  .workspace-nav>div>:is(a[href="#form"],#nav-input,#nav-result)>span{font-size:clamp(11px,3.2vw,13px)}
+  .workspace-nav>div>a[href="#guide"]{font-size:10px;letter-spacing:0}
+  #workspace .actions button,#change-module .actions button{flex:1 1 auto}
+  #workspace .counts span{padding:6px 9px}
+  #workspace :is(th,td){padding:10px 9px}
+}
 </style></head><body><script>/* Facility-result-based construction and supervision reference. */
 (function(){
 'use strict';
