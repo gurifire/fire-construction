@@ -91,6 +91,15 @@ def main():
             print(f'  {"worker":11s} {info} total={body.get("totalCount")} n={n}')
         except Exception:
             print(f'  {"worker":11s} {info} body={text[:200]!r}')
+    print('\n=== 반복 호출 60회 (명일동 94·서울시청·국회 번갈아, 직접 API)')
+    import time, collections
+    tally = collections.Counter()
+    for i in range(60):
+        sgg, bjd, bun = [('11740', '10100', '0094'), ('11140', '10300', '0031'), ('11560', '11000', '0001')][i % 3]
+        status, items = call(key, 'getBrTitleInfo', {'sigunguCd': sgg, 'bjdongCd': bjd, 'platGbCd': '0', 'bun': bun})
+        tally['ok' if status.startswith('code=00') and items else status.split(':')[0][:40]] += 1
+        time.sleep(0.5)
+    print('  ', dict(tally))
     return 0
 
 
