@@ -2057,7 +2057,7 @@ syncExtensionAreas();
  sidoSel.addEventListener('change',async()=>{await onSido();saveLast();});
  sggSel.addEventListener('change',async()=>{fillDong(await loadSido(sidoSel.value));saveLast();});
  async function initRegions(){
-  try{regionIndex=await getJSON(CONFIG.regionsBase+'index.json');}catch(e){regionIndex=null;}
+  try{regionIndex=location.protocol==='file:'?null:await getJSON(CONFIG.regionsBase+'index.json');}catch(e){regionIndex=null;}
   sidoSel.replaceChildren();
   if(regionIndex&&Array.isArray(regionIndex.sido)&&regionIndex.sido.length){
    regionIndex.sido.forEach(([c,n])=>sidoSel.append(opt(c,n)));
