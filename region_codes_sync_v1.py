@@ -22,11 +22,14 @@ from zoneinfo import ZoneInfo
 
 ENDPOINT = 'https://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList'
 OUT = Path('regions_v1')
-SIDO = [
+SIDO = [  # 조회어. 통합·개편으로 이름이 바뀌어도 응답의 시·도 코드로 다시 묶음
     '서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시',
     '울산광역시', '세종특별자치시', '경기도', '충청북도', '충청남도', '전라남도',
     '경상북도', '경상남도', '제주특별자치도', '강원특별자치도', '전북특별자치도',
+    '전남광주통합특별시',  # 2026-07-01 광주광역시+전라남도 통합
+    '전남광주특별시', '광주', '전남',  # 공식 표기가 다를 때 대비 (같은 시·도 코드로 합쳐짐)
 ]
+MIN_SIDO = 15  # 이보다 적게 받으면 실패로 보고 기존 파일 유지
 ROWS = 1000
 
 
@@ -133,34 +136,57 @@ def build(sido_name, rows):
     return sido_cd, {'sgg': sgg_list, 'dong': dong_map}
 
 
+def sido_name_of(rows):
+    """시·도 단계 행(코드 뒤 8자리 0)의 이름, 없으면 주소 첫 낱말."""
+    for row in rows:
+        region = str(row.get('region_cd', ''))
+        if region[2:] == '00000000':
+            return str(row.get('locatadd_nm', '')).strip()
+    names = [str(r.get('locatadd_nm', '')).split()[0] for r in rows if r.get('locatadd_nm')]
+    return max(set(names), key=names.count) if names else ''
+
+
 def main():
     key = os.environ.get('DATA_GO_KR_KEY', '').strip()
     if not key:
         print('DATA_GO_KR_KEY secret is not set.', file=sys.stderr)
         return 2
     OUT.mkdir(exist_ok=True)
-    index, problems = [], []
-    for sido in SIDO:
+    by_code, notes = {}, []
+    for term in SIDO:
         try:
-            sido_cd, data = build(sido, collect(key, sido))
+            rows = collect(key, term)
         except SyncError as error:
-            problems.append(str(error))
+            notes.append(str(error))
+            continue
+        if not rows:
+            notes.append(f'{term}: 조회 결과 없음 (통합·명칭 변경 가능)')
+        for row in rows:
+            region = str(row.get('region_cd', '')).strip()
+            if len(region) == 10 and region.isdigit():
+                by_code.setdefault(region[:2], {})[region] = row
+    index = []
+    for sido_cd in sorted(by_code):
+        rows = list(by_code[sido_cd].values())
+        name = sido_name_of(rows)
+        try:
+            _, data = build(name, rows)
+        except SyncError as error:
+            notes.append(str(error))
             continue
         dong_count = sum(len(v) for v in data['dong'].values())
-        if len(data['sgg']) == 0 or dong_count < 10:
-            problems.append(f'{sido}: too few rows ({dong_count})')
+        if not data['sgg'] or dong_count < 10:
+            notes.append(f'{name}: too few rows ({dong_count})')
             continue
         (OUT / f'{sido_cd}.json').write_text(
             json.dumps(data, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
-        index.append([sido_cd, sido])
-        print(f'{sido} ({sido_cd}): 시군구 {len(data["sgg"])}, 읍면동·리 {dong_count}')
-    if problems:
-        print('\n'.join(problems), file=sys.stderr)
-        if len(index) < len(SIDO):
-            print('Some provinces failed; existing files are kept and index is not updated.',
-                  file=sys.stderr)
-            return 1
-    index.sort()
+        index.append([sido_cd, name])
+        print(f'{name} ({sido_cd}): 시군구 {len(data["sgg"])}, 읍면동·리 {dong_count}')
+    if notes:
+        print('\n'.join(notes))
+    if len(index) < MIN_SIDO:
+        print(f'시·도 {len(index)}곳만 받음 (최소 {MIN_SIDO}). 기존 목록을 유지합니다.', file=sys.stderr)
+        return 1
     meta = {
         'updated': datetime.now(ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%d'),
         'source': '행정안전부_행정표준코드_법정동코드 (data.go.kr 15077871)',
