@@ -19,6 +19,8 @@ async def scenario(browser, label, **ctx_args):
     print('title:', await page.title())
     await page.click('#v85-reg>summary')
     await page.wait_for_function("document.getElementById('v91-sido').options.length>1", timeout=15000)
+    if await page.locator('.v101-seg').count():
+        await page.click('.v101-seg [data-mode=jibun]')
     print('note:', await page.evaluate("document.getElementById('v91-region-note').textContent"))
     print('proxy mode:', await page.evaluate("!!document.querySelector('.v91-own-key')"))
     await page.select_option('#v91-sido', '11')

@@ -16,6 +16,8 @@ async def scenario(browser, label, **ctx_args):
     print('title:', await page.title())
     await page.click('#v85-reg>summary')
     await page.wait_for_function("document.getElementById('v91-sido').options.length>1", timeout=20000)
+    if await page.locator('.v101-seg').count():
+        await page.click('.v101-seg [data-mode=road]')
     for kw in KEYWORDS:
         await page.fill('#v99-q', kw)
         await page.click('#v99-go')
@@ -28,17 +30,18 @@ async def scenario(browser, label, **ctx_args):
         if not cards:
             continue
         await page.locator('#v99-list .v85-item').first.click()
-        await page.wait_for_function("document.getElementById('v85-run').disabled", timeout=30000)
-        await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=90000)
-        await page.wait_for_timeout(1500)  # 부번 자동 재조회가 있으면 그것까지
+        await page.wait_for_timeout(2500)  # 부번 자동 재조회가 있으면 그것까지
         await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=90000)
         sel = await page.evaluate("({sido:document.getElementById('v91-sido').selectedOptions[0]?.text,sgg:document.getElementById('v91-sgg').selectedOptions[0]?.text,dong:document.getElementById('v85-dong').selectedOptions[0]?.text,manual:document.getElementById('v85-manual').value,bun:document.getElementById('v85-bun').value,ji:document.getElementById('v85-ji').value,san:document.getElementById('v85-san').checked})")
         print(f"    선택 → {sel['sido']} {sel['sgg']} {sel['dong']}{(' ['+sel['manual']+']') if sel['manual'] else ''} {('산 ' if sel['san'] else '')}{sel['bun']}{('-'+sel['ji']) if sel['ji'] else ''}")
         print('    대장:', await page.evaluate("document.getElementById('v85-msg').textContent"))
+        print('    채움:', await page.evaluate("({use:document.getElementById('use').selectedOptions[0]?.text,area:document.getElementById('area').value,g:document.getElementById('ground').value,b:document.getElementById('basement').value})"))
         bl = await page.evaluate("[...document.querySelectorAll('#v85-list .v85-item')].map(e=>e.innerText.replace(/\\s+/g,' ').replace(' 채우기 ›',''))")
         for c in bl[:3]:
             print('      ·', c[:110])
         if not bl and sel['ji']:
+            if await page.locator('.v101-seg').count():
+                await page.click('.v101-seg [data-mode=jibun]')
             await page.fill('#v85-ji', '')
             await page.click('#v85-run')
             await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=90000)
@@ -46,6 +49,8 @@ async def scenario(browser, label, **ctx_args):
             bl = await page.evaluate("[...document.querySelectorAll('#v85-list .v85-item')].map(e=>e.innerText.replace(/\\s+/g,' ').replace(' 채우기 ›',''))")
             for c in bl[:3]:
                 print('      ·', c[:110])
+            if await page.locator('.v101-seg').count():
+                await page.click('.v101-seg [data-mode=road]')
     print('errors:', errors)
     await ctx.close()
 

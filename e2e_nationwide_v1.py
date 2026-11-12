@@ -96,6 +96,8 @@ async def check(lots):
         await page.goto(SITE, wait_until='networkidle')
         await page.click('#v85-reg>summary')
         await page.wait_for_function("document.getElementById('v91-sido').options.length>1", timeout=20000)
+        if await page.locator('.v101-seg').count():
+            await page.click('.v101-seg [data-mode=jibun]')
         for lot in lots:
             await page.select_option('#v91-sido', lot['sido'])
             await page.wait_for_function(f"[...document.getElementById('v91-sgg').options].some(o=>o.value==='{lot['sgg']}')", timeout=20000)
