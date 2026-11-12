@@ -28,7 +28,10 @@ async def scenario(browser, label, **ctx_args):
         if not cards:
             continue
         await page.locator('#v99-list .v85-item').first.click()
-        await page.wait_for_function("!document.getElementById('v85-run').disabled && document.getElementById('v85-msg').textContent.length>0", timeout=90000)
+        await page.wait_for_function("document.getElementById('v85-run').disabled", timeout=30000)
+        await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=90000)
+        await page.wait_for_timeout(1500)  # 부번 자동 재조회가 있으면 그것까지
+        await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=90000)
         sel = await page.evaluate("({sido:document.getElementById('v91-sido').selectedOptions[0]?.text,sgg:document.getElementById('v91-sgg').selectedOptions[0]?.text,dong:document.getElementById('v85-dong').selectedOptions[0]?.text,manual:document.getElementById('v85-manual').value,bun:document.getElementById('v85-bun').value,ji:document.getElementById('v85-ji').value,san:document.getElementById('v85-san').checked})")
         print(f"    선택 → {sel['sido']} {sel['sgg']} {sel['dong']}{(' ['+sel['manual']+']') if sel['manual'] else ''} {('산 ' if sel['san'] else '')}{sel['bun']}{('-'+sel['ji']) if sel['ji'] else ''}")
         print('    대장:', await page.evaluate("document.getElementById('v85-msg').textContent"))
