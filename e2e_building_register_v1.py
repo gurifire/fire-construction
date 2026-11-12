@@ -26,11 +26,13 @@ async def scenario(browser, label, **ctx_args):
     await page.select_option('#v91-sgg', '11740')
     await page.wait_for_function("[...document.getElementById('v85-dong').options].some(o=>o.value==='1174010100')", timeout=15000)
     await page.select_option('#v85-dong', '1174010100')
-    await page.fill('#v85-bun', '94')
-    await page.click('#v85-run')
-    await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=60000)
-    print('message:', await page.evaluate("document.getElementById('v85-msg').textContent"))
-    print('cards:', await page.evaluate("[...document.querySelectorAll('#v85-list .v85-item')].map(e=>e.innerText.replace(/\\s+/g,' ')).slice(0,3)"))
+    for bun in ('94', '329'):
+        await page.fill('#v85-bun', bun)
+        await page.click('#v85-run')
+        await page.wait_for_function("!document.getElementById('v85-run').disabled", timeout=60000)
+        print(f'[명일동 {bun}] message:', await page.evaluate("document.getElementById('v85-msg').textContent"))
+        print('   diag:', await page.evaluate("(document.getElementById('v96-diag')||{}).textContent||''"))
+        print('   cards:', await page.evaluate("[...document.querySelectorAll('#v85-list .v85-item')].map(e=>e.innerText.replace(/\\s+/g,' ')).slice(0,2)"))
     print('requests:'); [print('  ', r) for r in reqs]
     print('console:'); [print('  ', l) for l in logs if not l.startswith('log')]
     await ctx.close()
