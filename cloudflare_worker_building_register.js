@@ -1,11 +1,13 @@
 /*
- * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 3판
+ * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 4판
  * - 인증키는 Cloudflare 비밀값 DATA_GO_KR_KEY 에만 저장 (이 파일·저장소에는 없음)
  * - 우리 앱 주소(ALLOWED_ORIGINS)에서 온 요청만 받음
  * - 표제부(getBrTitleInfo) 조회만 중계. 부번(ji)을 비우면 그 본번의 모든 부번 조회
  * - 결과가 100건을 넘으면 최대 5쪽(500건)까지 이어 받아 합침
  * - 정상 결과(resultCode 00)만 저장 (workers.dev 주소에서는 Cloudflare 정책상 저장이 동작하지 않을 수 있음)
  * - 공공데이터 서버 일시 장애(5xx·깨진 응답·연결 실패)는 최대 3번 시도, 그래도 실패하면 UPSTREAM_BUSY
+ * - 0건이면 2번 더 확인 (지역 서버에 따라 빈 결과가 오는 경우 대비)
+ * - 확인용 헤더: X-Colo(실행 지역), X-Attempts(시도 횟수), X-Total
  * 설치: Cloudflare → Workers → fire-bldg → 코드 편집 → 전체 교체 → Deploy
  *       (비밀값 DATA_GO_KR_KEY 는 이미 넣었다면 그대로 유지)
  */
@@ -44,7 +46,10 @@ export default {
       'Access-Control-Allow-Origin': allowed ? origin : ALLOWED_ORIGINS[0],
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Vary': 'Origin',
+      'Access-Control-Expose-Headers': 'X-Colo, X-Attempts, X-Total, X-Cache',
     };
+    const colo = (request.cf && request.cf.colo) || '';
+    let attempts = 0;
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (request.method !== 'GET' || !allowed) return new Response('forbidden', { status: 403, headers: cors });
     if (!env.DATA_GO_KR_KEY) return new Response('server key missing', { status: 500, headers: cors });
@@ -74,7 +79,8 @@ export default {
     for (let page = 1; page <= MAX_PAGES; page++) {
       const q = new URLSearchParams(query);
       q.set('_type', 'json'); q.set('numOfRows', String(PAGE)); q.set('pageNo', String(page));
-      const upstream = await fetchRetry(UPSTREAM + '?serviceKey=' + serviceKey + '&' + q.toString());
+      let upstream = await fetchRetry(UPSTREAM + '?serviceKey=' + serviceKey + '&' + q.toString());
+      attempts++;
       if (upstream.failed) {
         const busy = { response: { header: { resultCode: 'UPSTREAM_BUSY', resultMsg: '공공데이터 서버 일시 장애 (' + (upstream.status || '연결 실패') + ')' } } };
         return new Response(JSON.stringify(busy), { status: 503, headers: jsonHeaders });
@@ -89,8 +95,15 @@ export default {
       if (head.resultCode && head.resultCode !== '00') {
         return new Response(text, { status: 200, headers: jsonHeaders });
       }
+      let items = itemsOf(data);
+      for (let again = 0; page === 1 && items.length === 0 && again < 2; again++) {
+        await new Promise(r => setTimeout(r, 500));
+        const retry = await fetchRetry(UPSTREAM + '?serviceKey=' + serviceKey + '&' + q.toString());
+        attempts++;
+        if (retry.failed) continue;
+        try { const d2 = JSON.parse(retry.text); if (itemsOf(d2).length) { data = d2; items = itemsOf(d2); } } catch (e) { /* keep empty */ }
+      }
       first = first || data;
-      const items = itemsOf(data);
       total = Number((data.response && data.response.body && data.response.body.totalCount) || items.length);
       all = all.concat(items);
       if (items.length < PAGE || all.length >= total) break;
@@ -105,6 +118,6 @@ export default {
     if (cache) {
       ctx.waitUntil(cache.put(cacheKey, new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=' + CACHE_SECONDS } })));
     }
-    return new Response(body, { status: 200, headers: { ...jsonHeaders, 'X-Cache': 'MISS' } });
+    return new Response(body, { status: 200, headers: { ...jsonHeaders, 'X-Cache': 'MISS', 'X-Colo': colo, 'X-Attempts': String(attempts), 'X-Total': String(total) } });
   },
 };
