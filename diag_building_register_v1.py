@@ -11,9 +11,11 @@ import json
 import os
 import sys
 import urllib.parse
+import urllib.error
 import urllib.request
 
 BASE = 'https://apis.data.go.kr/1613000/BldRgstHubService/'
+WORKER = 'https://fire-bldg.kdw8116.workers.dev/'
 TESTS = [  # (label, sigunguCd, bjdongCd, bun, ji)
     ('서울 강동구 명일동 94', '11740', '10100', '0094', ''),
     ('서울 중구 태평로1가 31 (서울시청)', '11140', '10300', '0031', ''),
@@ -69,6 +71,26 @@ def main():
                 f"[{it.get('bun')}-{it.get('ji')}] {it.get('mainPurpsCdNm') or ''}".strip()
                 for it in items[:4])
             print(f'  {name:11s} {status:22s} n={len(items):3d}  {sample}')
+        q = {'sigunguCd': sgg, 'bjdongCd': bjd, 'platGbCd': '0', 'bun': bun}
+        if ji:
+            q['ji'] = ji
+        req = urllib.request.Request(WORKER + '?' + urllib.parse.urlencode(q),
+                                     headers={'Origin': 'https://gurifire.github.io', 'User-Agent': 'fire-diag'})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                text = response.read().decode('utf-8', 'replace')
+                info = f'http={response.status} cache={response.headers.get("X-Cache")}'
+        except urllib.error.HTTPError as error:
+            text = error.read().decode('utf-8', 'replace'); info = f'http={error.code}'
+        except Exception as error:
+            text = ''; info = f'ERROR {type(error).__name__}: {error}'
+        try:
+            body = json.loads(text)['response']['body']
+            raw = body['items']['item'] if isinstance(body.get('items'), dict) else []
+            n = len(raw if isinstance(raw, list) else [raw])
+            print(f'  {"worker":11s} {info} total={body.get("totalCount")} n={n}')
+        except Exception:
+            print(f'  {"worker":11s} {info} body={text[:200]!r}')
     return 0
 
 
