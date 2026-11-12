@@ -1,0 +1,32 @@
+name: Region codes sync v1
+on:
+  workflow_dispatch:
+  schedule:
+    # 매월 2일 03:17 (한국시간) 법정동코드 갱신
+    - cron: '17 18 1 * *'
+permissions:
+  contents: write
+concurrency:
+  group: region-codes-sync-v1
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download legal-dong codes
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python3 region_codes_sync_v1.py
+      - name: Save region files
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git add -- regions_v1/
+          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update legal-dong region codes'
+          git pull --rebase origin "$TARGET_BRANCH"
+          git push origin "HEAD:$TARGET_BRANCH"
