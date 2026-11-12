@@ -1,10 +1,11 @@
 /*
- * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 2판
+ * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 3판
  * - 인증키는 Cloudflare 비밀값 DATA_GO_KR_KEY 에만 저장 (이 파일·저장소에는 없음)
  * - 우리 앱 주소(ALLOWED_ORIGINS)에서 온 요청만 받음
  * - 표제부(getBrTitleInfo) 조회만 중계. 부번(ji)을 비우면 그 본번의 모든 부번 조회
  * - 결과가 100건을 넘으면 최대 5쪽(500건)까지 이어 받아 합침
- * - 정상 결과(resultCode 00)만 1시간 저장. 오류 응답은 저장하지 않음
+ * - 정상 결과(resultCode 00)만 저장 (workers.dev 주소에서는 Cloudflare 정책상 저장이 동작하지 않을 수 있음)
+ * - 공공데이터 서버 일시 장애(5xx·깨진 응답·연결 실패)는 최대 3번 시도, 그래도 실패하면 UPSTREAM_BUSY
  * 설치: Cloudflare → Workers → fire-bldg → 코드 편집 → 전체 교체 → Deploy
  *       (비밀값 DATA_GO_KR_KEY 는 이미 넣었다면 그대로 유지)
  */
@@ -12,6 +13,23 @@ const ALLOWED_ORIGINS = ['https://gurifire.github.io'];
 const UPSTREAM = 'https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo';
 const REQUIRED = { sigunguCd: /^\d{5}$/, bjdongCd: /^\d{5}$/, platGbCd: /^[012]$/, bun: /^\d{4}$/ };
 const PAGE = 100, MAX_PAGES = 5, CACHE_SECONDS = 3600;
+
+const AUTH_ERROR = /SERVICE_KEY|LIMITED_NUMBER|UNAUTHORIZED|등록되지 않은/i;
+/* 공공데이터 서버는 가끔(측정 약 17%) 503·깨진 응답·연결 끊김을 냄 → 최대 3번 시도 */
+async function fetchRetry(url) {
+  let last = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+      const json = /^\s*\{/.test(text);
+      if (res.status < 500 && (json || AUTH_ERROR.test(text))) return { status: res.status, text, type: res.headers.get('Content-Type') };
+      last = { status: res.status, text, type: res.headers.get('Content-Type') };
+    } catch (e) { last = null; }
+    await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+  }
+  return last ? { ...last, failed: true } : { status: 0, text: '', failed: true };
+}
 
 function itemsOf(data) {
   const raw = data && data.response && data.response.body && data.response.body.items && data.response.body.items.item;
@@ -56,12 +74,16 @@ export default {
     for (let page = 1; page <= MAX_PAGES; page++) {
       const q = new URLSearchParams(query);
       q.set('_type', 'json'); q.set('numOfRows', String(PAGE)); q.set('pageNo', String(page));
-      const upstream = await fetch(UPSTREAM + '?serviceKey=' + serviceKey + '&' + q.toString());
-      const text = await upstream.text();
+      const upstream = await fetchRetry(UPSTREAM + '?serviceKey=' + serviceKey + '&' + q.toString());
+      if (upstream.failed) {
+        const busy = { response: { header: { resultCode: 'UPSTREAM_BUSY', resultMsg: '공공데이터 서버 일시 장애 (' + (upstream.status || '연결 실패') + ')' } } };
+        return new Response(JSON.stringify(busy), { status: 503, headers: jsonHeaders });
+      }
+      const text = upstream.text;
       let data;
       try { data = JSON.parse(text); } catch (e) {
         // 인증 오류 등은 XML로 옴: 그대로 전달 (저장하지 않음)
-        return new Response(text, { status: upstream.status, headers: { ...cors, 'Content-Type': upstream.headers.get('Content-Type') || 'text/plain; charset=utf-8' } });
+        return new Response(text, { status: upstream.status, headers: { ...cors, 'Content-Type': upstream.type || 'text/plain; charset=utf-8' } });
       }
       const head = (data.response && data.response.header) || {};
       if (head.resultCode && head.resultCode !== '00') {
