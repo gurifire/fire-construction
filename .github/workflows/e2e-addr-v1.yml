@@ -1,0 +1,20 @@
+name: Address search E2E v1
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install browser
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium webkit
+      - name: Run address search check
+        run: python e2e_addr_v1.py
