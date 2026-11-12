@@ -23,7 +23,7 @@ async def scenario(browser, label, **ctx_args):
         msg = await page.evaluate("document.getElementById('v99-msg').textContent")
         cards = await page.evaluate("[...document.querySelectorAll('#v99-list .v85-item')].map(e=>e.innerText.replace(/\\s+/g,' ').replace(' 선택 ›',''))")
         print(f'[{kw}] {msg}')
-        for c in cards[:3]:
+        for c in cards[:8]:
             print('    -', c[:110])
         if not cards:
             continue
