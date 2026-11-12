@@ -100,6 +100,23 @@ def main():
         tally['ok' if status.startswith('code=00') and items else status.split(':')[0][:40]] += 1
         time.sleep(0.5)
     print('  ', dict(tally))
+    print('\n=== 반복 호출 60회 (같은 지번, 중간 서버 경유)')
+    tally = collections.Counter()
+    for i in range(60):
+        sgg, bjd, bun = [('11740', '10100', '0094'), ('11140', '10300', '0031'), ('11560', '11000', '0001')][i % 3]
+        req = urllib.request.Request(WORKER + '?' + urllib.parse.urlencode({'sigunguCd': sgg, 'bjdongCd': bjd, 'platGbCd': '0', 'bun': bun}),
+                                     headers={'Origin': 'https://gurifire.github.io', 'User-Agent': 'fire-diag'})
+        try:
+            with urllib.request.urlopen(req, timeout=40) as response:
+                body = json.loads(response.read().decode('utf-8', 'replace'))['response']['body']
+                raw = body['items']['item'] if isinstance(body.get('items'), dict) else []
+                tally['ok' if raw else 'empty'] += 1
+        except urllib.error.HTTPError as error:
+            tally[f'http {error.code}'] += 1
+        except Exception as error:
+            tally[type(error).__name__] += 1
+        time.sleep(0.5)
+    print('  ', dict(tally))
     return 0
 
 
