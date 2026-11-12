@@ -8,6 +8,7 @@
 Only public building data is printed.
 """
 import asyncio
+import re
 import json
 import os
 import random
@@ -121,10 +122,12 @@ async def check(lots):
                 await page.locator('#v85-list .v85-item').first.click()
                 await page.wait_for_timeout(150)
                 vals = await page.evaluate("({area:document.getElementById('area').value,g:document.getElementById('ground').value,b:document.getElementById('basement').value,use:document.getElementById('use').selectedOptions[0]?.text||''})")
-                m = first_text.split('\n')
-                fill = f"채우기→ 연면적 {vals['area']} / 지상 {vals['g']} / 지하 {vals['b']} / 용도 {vals['use'] or '(직접 선택)'}"
-                # find the API item shown first
-                import re
+                purpose = re.search(r'번지 · ([^·]+?) ·', first_text)
+                purpose = purpose.group(1).strip() if purpose else '?'
+                fill = f"채우기→ 연면적 {vals['area']} / 지상 {vals['g']} / 지하 {vals['b']} / 주용도 {purpose} → 용도 {vals['use'] or '(비움)'}"
+                expect_blank = purpose in ('단독주택', '기타', '주용도 미기재', '야영장시설')
+                if expect_blank != (vals['use'] in ('', '선택하세요')):
+                    fill += '  ❌ 용도 연결 이상'; ok_set = False
                 mm = re.search(r'([\d,]+(?:\.\d+)?)㎡', first_text)
                 if mm:
                     shown_area = float(mm.group(1).replace(',', ''))
