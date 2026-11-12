@@ -1,6 +1,11 @@
 name: Address search E2E v1
 on:
   workflow_dispatch:
+    inputs:
+      keywords:
+        description: 'Keywords separated by |'
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -17,4 +22,6 @@ jobs:
           pip install playwright==1.48.0
           python -m playwright install --with-deps chromium webkit
       - name: Run address search check
+        env:
+          KW: ${{ inputs.keywords }}
         run: python e2e_addr_v1.py

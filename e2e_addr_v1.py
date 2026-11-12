@@ -3,7 +3,8 @@ import asyncio, time
 from playwright.async_api import async_playwright
 
 URL = 'https://gurifire.github.io/fire-construction/?addr=' + str(int(time.time()))
-KEYWORDS = ['구리역롯데캐슬', '아차산로 439', '세종대로 110', '의사당대로 1', '명일동 94', '없는건물이름가나다']
+import os
+KEYWORDS = os.environ.get('KW', '').split('|') if os.environ.get('KW') else ['구리역롯데캐슬', '아차산로 439', '세종대로 110', '의사당대로 1', '명일동 94', '없는건물이름가나다']
 
 async def scenario(browser, label, **ctx_args):
     ctx = await browser.new_context(**ctx_args)
@@ -50,8 +51,9 @@ async def main():
         b = await p.chromium.launch()
         await scenario(b, 'PC Chrome', viewport={'width': 1280, 'height': 900})
         await b.close()
-        w = await p.webkit.launch()
-        await scenario(w, 'iPhone Safari', **p.devices['iPhone 13'])
-        await w.close()
+        if not os.environ.get('KW'):
+            w = await p.webkit.launch()
+            await scenario(w, 'iPhone Safari', **p.devices['iPhone 13'])
+            await w.close()
 
 asyncio.run(main())
