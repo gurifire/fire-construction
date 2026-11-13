@@ -329,7 +329,9 @@ def main():
     sp = os.path.join(OUT, 'status.json')
     if os.path.exists(sp):
         prev_status = json.load(open(sp, encoding='utf-8'))
-    json.dump(status, open(sp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    same = prev_status and {k: v for k, v in prev_status.items() if k != 'checkedAt'} == {k: v for k, v in status.items() if k != 'checkedAt'}
+    if not same:  # 내용이 같으면 매일 날짜만 바뀌는 커밋을 만들지 않음
+        json.dump(status, open(sp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     changed_app = new_app != app
     if changed_app:
         open(APP, 'w', encoding='utf-8').write(new_app)
