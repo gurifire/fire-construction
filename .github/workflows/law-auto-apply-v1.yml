@@ -1,0 +1,52 @@
+name: Law auto apply v1
+# 수집된 시행령 원문에서 별표 4(설치대상 소방시설) 개정을 분석해 앱(index.html)에 자동 반영한다.
+# 앱은 개정 시행일부터 새 기준을 자동으로 쓰고, 바뀐 시설만 새 기준으로 다시 판정한다.
+on:
+  workflow_run:
+    workflows: ['Law source collection v1', 'Law history sync v4']
+    types: [completed]
+  schedule:
+    - cron: '43 23 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: law-auto-apply-v1
+  cancel-in-progress: false
+jobs:
+  apply:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Analyse amendments and update app
+        id: apply
+        env:
+          LAW_AUTO_NOTICE: ${{ runner.temp }}/law-auto-notice.md
+        run: python3 law_auto_apply_v1.py
+      - name: Check generated rule block
+        run: |
+          node -e "const s=require('fs').readFileSync('index.html','utf8');const m=s.match(/window\.LAW_AUTO_RULES=(\{.*?\});<\/script><!--LAW-AUTO-END-->/s);if(!m)throw Error('block missing');const r=JSON.parse(m[1]);if(r.schemaVersion!==1||!Array.isArray(r.rules))throw Error('bad block');console.log('rules',r.rules.map(x=>x.id).join(',')||'none')"
+      - name: Save
+        env:
+          TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git add -- index.html law_auto_v1/
+          if git diff --cached --quiet; then echo 'No change.'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Law auto apply: 시행령 별표 4 개정 자동 반영'
+          git pull --rebase origin "$TARGET_BRANCH"
+          git push origin "HEAD:$TARGET_BRANCH"
+      - name: Notify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTICE: ${{ runner.temp }}/law-auto-notice.md
+        run: |
+          if [ -s "$NOTICE" ]; then
+            gh issue create --title "소방시설 법령 개정 감지 — 앱 자동 반영 $(date +%Y-%m-%d)" --body-file "$NOTICE"
+          fi
