@@ -1,5 +1,5 @@
 /*
- * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 5판
+ * 건축물대장 조회 중간 서버 (Cloudflare Worker) — 6판
  * - 인증키는 Cloudflare 비밀값 DATA_GO_KR_KEY 에만 저장 (이 파일·저장소에는 없음)
  * - 우리 앱 주소(ALLOWED_ORIGINS)에서 온 요청만 받음
  * - 표제부(getBrTitleInfo) 조회만 중계. 부번(ji)을 비우면 그 본번의 모든 부번 조회
@@ -9,13 +9,15 @@
  * - 0건이면 2번 더 확인 (지역 서버에 따라 빈 결과가 오는 경우 대비)
  * - 확인용 헤더: X-Colo(실행 지역), X-Attempts(시도 횟수), X-Total
  * - 5판: ?mode=juso&keyword=… 도로명·건물명 주소 검색 (행정안전부 검색API, 비밀값 JUSO_KEY)
+ * - 6판: ?op=floor 층별개요(getBrFlrOulnInfo), ?op=expos 전유공용면적(getBrExposPubuseAreaInfo) 추가 — 용도변경 층·호실 채우기용
  * 설치: Cloudflare → Workers → fire-bldg → 코드 편집 → 전체 교체 → Deploy
  *       (비밀값 DATA_GO_KR_KEY 는 이미 넣었다면 그대로 유지)
  */
 const ALLOWED_ORIGINS = ['https://gurifire.github.io'];
-const UPSTREAM = 'https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo';
+const HUB = 'https://apis.data.go.kr/1613000/BldRgstHubService/';
+const OPS = { title: ['getBrTitleInfo', 5], floor: ['getBrFlrOulnInfo', 10], expos: ['getBrExposPubuseAreaInfo', 30] };
 const REQUIRED = { sigunguCd: /^\d{5}$/, bjdongCd: /^\d{5}$/, platGbCd: /^[012]$/, bun: /^\d{4}$/ };
-const PAGE = 100, MAX_PAGES = 5, CACHE_SECONDS = 3600;
+const PAGE = 100, CACHE_SECONDS = 3600;
 const JUSO_API = 'https://business.juso.go.kr/addrlink/addrLinkApi.do';
 
 /* 도로명·건물명 검색 → 지번(법정동코드·본번·부번·산) 목록 */
@@ -95,9 +97,12 @@ export default {
     if (ji && !/^\d{4}$/.test(ji)) return new Response('bad request: ji', { status: 400, headers: cors });
     if (ji) query.set('ji', ji);
 
+    const op = OPS[input.get('op') || 'title'];
+    if (!op) return new Response('bad request: op', { status: 400, headers: cors });
+    const UPSTREAM = HUB + op[0], MAX_PAGES = op[1];
     const jsonHeaders = { ...cors, 'Content-Type': 'application/json; charset=utf-8' };
     const cache = typeof caches !== 'undefined' ? caches.default : null;
-    const cacheKey = new Request('https://cache.fire-bldg/v2?' + query.toString());
+    const cacheKey = new Request('https://cache.fire-bldg/v3/' + op[0] + '?' + query.toString());
     if (cache) {
       const hit = await cache.match(cacheKey);
       if (hit) return new Response(hit.body, { status: 200, headers: { ...jsonHeaders, 'X-Cache': 'HIT' } });
