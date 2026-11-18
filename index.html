@@ -2059,7 +2059,7 @@ syncExtensionAreas();
   /* V166: 증축 특례 판단에서 생긴 확인 사항은 시설 이유대로 따로 묶음 */
   const R=window.V166Reasons||{};const spUsed=new Set();
   const SP=[['기존 설비 범위 확인','증축 부분이 기존 설비 유효범위(방수구·확성기 수평거리 등) 안인지 — 안이면 추가 설치 불요'],['헤드 설치 제외 장소 확인','증축 부분이 승강로·계단실 등 헤드 설치 제외 장소인지 — 승강장·복도 등이 함께 증축되면 헤드 설치'],['설치 대상 층(','증축 층이 층 단위 설치 대상 층(예: 4층 이상 1천㎡)에 해당하는지']];
-  for(const [pre,label] of SP){const hit=names.filter(n=>{const r=R[N(n)];return r&&r.startsWith(pre)&&!used.has(N(n));});if(!hit.length)continue;hit.forEach(n=>{used.add(N(n));spUsed.add(N(n));});items.push({label,facs:hit,yes:false});}
+  for(const [pre,label] of SP){const hit=names.filter(n=>{const r=R[N(n)];return r&&r.startsWith(pre)&&!used.has(N(n));});if(!hit.length)continue;hit.forEach(n=>{used.add(N(n));spUsed.add(N(n));});items.push({label,facs:hit,yes:false,sp:true});}
   for(const [k,label,facs,ansId] of TOPICS){
    const hit=facs.filter(f=>set.has(f)&&!spUsed.has(f));if(!hit.length)continue;
    hit.forEach(f=>used.add(f));
@@ -2081,11 +2081,23 @@ syncExtensionAreas();
   const r=build(names,answers(useMain));
   const box=document.createElement('details');box.className='v89-check';box.setAttribute('aria-label','확인 필요 사항');
   const sumEl=document.createElement('summary');const h=document.createElement('h4');h.textContent='확인 필요 사항';sumEl.append(h);box.append(sumEl);
-  const p=document.createElement('p');p.className='v89-lead';p.textContent='아래 사항에 해당하면 설치 대상이 추가될 수 있습니다. 해당 여부를 확인해 입력하거나 별도로 검토하세요.';box.append(p);
-  if(r.items.length){const ul=document.createElement('ul');for(const it of r.items){const li=document.createElement('li');if(it.yes)li.className='v89-yes';li.append(document.createTextNode(it.label+(it.yes?' — 있음으로 입력됨':'')));const sm=document.createElement('small');sm.textContent='관련 시설: '+it.facs.join(', ');li.append(sm);ul.append(li);}box.append(ul);}
+  const p=document.createElement('p');p.className='v89-lead';p.textContent='아래에 해당하면 설치 대상·공사 범위가 달라집니다. 확인해 입력하거나 별도로 검토하세요.';box.append(p);
+  if(r.items.length){
+   /* V170: 확인 사항을 3묶음으로 — ① 이번 공사 판단 ② 면적·층 조건 ③ 해당 시설·여건 */
+   const SH=n=>String(n).replace(/\s*등$/,'').replace(/\s*감지기$/,'').replace(/(소화)?설비$/,'');
+   const LB={'건물 전체 연면적·층별 바닥면적·수용인원':'전체 연면적·층별 바닥면적·수용인원','건물 내부 주차장 면적·주차대수':'건물 내부 주차장 면적·대수','주방(후드·덕트)·집단급식소·대규모점포 음식점':'주방(후드·덕트)·집단급식소','지하층·무창층 바닥면적(층별)':'지하층·무창층 바닥면적','세부 용도(노유자·숙박·의료·기숙사 등)·같은 용도 면적 합계':'세부 용도·같은 용도 면적 합계','가스시설 유무':'가스시설','특수가연물 저장·취급 수량':'특수가연물 저장·취급'};
+   const G2=['전체 연면적','지상 1·2층','지하층·무창층','건물 내부 주차장','세부 용도'];
+   const grp=it=>it.sp?0:G2.some(k=>(LB[it.label]||it.label).startsWith(k)||it.label.startsWith('건물 '+k))?1:2;
+   const DEF=[['① 이번 공사 판단에 바로 영향',true,'먼저 확인'],['② 입력하면 결과가 바뀌는 면적·층 조건',true,''],['③ 해당 시설·여건이 있을 때만',false,'']];
+   const wrap=document.createElement('div');wrap.className='v170-groups';
+   DEF.forEach(([title,open,tag],gi)=>{const xs=r.items.filter(it=>grp(it)===gi);if(!xs.length)return;
+    const g=document.createElement('details');g.className='v170-g'+(gi===0?' first':'');g.dataset.v89='1';g.open=open;
+    const sm=document.createElement('summary');sm.innerHTML='<span class="t"></span>'+(tag?'<span class="tag">'+tag+'</span>':'')+'<span class="n">'+xs.length+'개</span>';sm.querySelector('.t').textContent=title;g.append(sm);
+    const ul=document.createElement('ul');xs.forEach(it=>{const li=document.createElement('li');if(it.yes)li.className='v89-yes';const q=document.createElement('span');q.className='q';q.textContent=(LB[it.label]||it.label)+(it.yes?' — 있음으로 입력됨':'');const fc=document.createElement('span');fc.className='f';fc.textContent='→ '+it.facs.map(SH).join(' · ');li.append(q,fc);ul.append(li)});g.append(ul);wrap.append(g)});
+   box.append(wrap);}
   else{const q=document.createElement('p');q.className='v89-lead';q.textContent='입력한 조건 기준으로 따로 확인할 사항이 없습니다.';box.append(q);}
-  if(r.etc.length){const e=document.createElement('p');e.className='v89-etc';e.textContent='그 밖에 해당 시 확인: '+r.etc.join(' / ');box.append(e);}
-  if(r.other.length){const o=document.createElement('p');o.className='v89-etc';o.textContent='그 밖의 시설 확인: '+r.other.join(', ');box.append(o);}
+  if(r.etc.length){const e=document.createElement('p');e.className='v89-etc';e.textContent='그 밖에: '+r.etc.join(' / ');box.append(e);}
+  if(r.other.length){const o=document.createElement('p');o.className='v89-etc';o.textContent='그 밖의 시설: '+r.other.join(', ');box.append(o);}
   const cnt=r.items.length+(r.etc.length?1:0)+(r.other.length?1:0);const ce=document.createElement('span');ce.className='v107-count';ce.textContent=cnt+'개';sumEl.append(ce);
   return {box,count:cnt};
  }
@@ -4581,4 +4593,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 let opened=[];window.addEventListener('beforeprint',()=>{opened=[...document.querySelectorAll('.v169-memo:not([open])')];opened.forEach(d=>d.open=true)});window.addEventListener('afterprint',()=>{opened.forEach(d=>d.open=false);opened=[]});
 })();</script>
 
+<style id="v170-groups-css">
+.v170-groups{display:grid;gap:8px;margin:0 0 4px}.v89-check .v170-g>summary{margin:0!important;min-height:0!important}
+.v89-check .v170-g{margin:0!important;}.v170-g{border-radius:9px;background:#2b2213;border:1px solid #5a4220;padding:0}
+.v170-g.first{border-color:#d7a54a;background:#3a2a10}
+.v170-g>summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 12px;font-size:14px;font-weight:700;color:#ffe2b8;cursor:pointer;list-style:none}
+.v170-g>summary::-webkit-details-marker{display:none}
+.v170-g>summary::before{content:'▸';color:#c9b08a;font-weight:400}
+.v170-g[open]>summary::before{content:'▾'}
+.v170-g>summary .tag{font-size:11px;padding:2px 7px;border-radius:999px;background:#5a3a10;color:#ffd58a;font-weight:600}
+.v170-g>summary .n{margin-left:auto;font-size:12px;font-weight:400;color:#c9b08a}
+.v170-g:not([open])>summary .n::after{content:' · 눌러서 보기'}
+.v89-check .v170-g ul{list-style:none;margin:0;padding:0 12px 10px;display:grid;gap:7px}
+.v89-check .v170-g li{padding:7px 0 0;border-top:1px dashed #4a371c;display:grid;gap:1px;font-size:14px;line-height:1.55}
+.v89-check .v170-g li::before{display:none!important;content:none!important}
+.v170-g li .q{color:#ffe2b8}.v170-g li .f{color:#b9a280;font-size:13px}
+.v170-g li.v89-yes .q{color:#ffd58a;font-weight:700}
+@media print{.v170-g,.v170-g.first{background:#fff;border-color:#999}.v170-g>summary,.v170-g li .q,.v170-g li .f{color:#000}.v170-g>summary .n::after{content:''}}
+</style>
 </body></html>
