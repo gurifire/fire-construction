@@ -4507,4 +4507,78 @@ function build(){
 window.V164Room=()=>!!($('v164-room')&&$('v164-room').checked);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(build,0));else setTimeout(build,0);
 })();
-</script><style id="v164-css">.v164-space{display:grid;gap:8px;margin-top:6px}.v164-space label{display:flex;gap:10px;align-items:center;min-height:48px;padding:8px 12px;border-radius:10px;background:#132a4b;border:1px solid #2f5687;font-weight:500;cursor:pointer;user-select:none}.v164-space label:has(input:checked){border-color:#ff7a45}.v164-space input{width:20px!important;height:20px!important;min-height:0!important;margin:0!important;padding:0!important;flex:none!important;accent-color:#ff7a45}.v164-space b{display:block;font-size:14px;color:#eef3fa}.v164-space small{display:block;font-size:12px;color:#9fb3cc;margin-top:2px}</style></body></html>
+</script><style id="v164-css">.v164-space{display:grid;gap:8px;margin-top:6px}.v164-space label{display:flex;gap:10px;align-items:center;min-height:48px;padding:8px 12px;border-radius:10px;background:#132a4b;border:1px solid #2f5687;font-weight:500;cursor:pointer;user-select:none}.v164-space label:has(input:checked){border-color:#ff7a45}.v164-space input{width:20px!important;height:20px!important;min-height:0!important;margin:0!important;padding:0!important;flex:none!important;accent-color:#ff7a45}.v164-space b{display:block;font-size:14px;color:#eef3fa}.v164-space small{display:block;font-size:12px;color:#9fb3cc;margin-top:2px}</style><style id="v169-memo-css">
+.v169-memo{margin:16px 0 4px;border:1px solid #284670;border-radius:10px;background:#0f2441;padding:0 16px}
+.v169-memo>summary{cursor:pointer;padding:12px 0;font-size:14px;color:#c4d2e4;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;list-style:none}
+.v169-memo>summary::-webkit-details-marker{display:none}
+.v169-memo>summary::before{content:'▸';color:#7f9cc4;font-size:12px}
+.v169-memo[open]>summary::before{content:'▾'}
+.v169-memo>summary b{color:#eef3fa;font-weight:700}
+.v169-memo .v169-badge{font-size:12px;padding:2px 8px;border-radius:999px;background:#3a2a10;color:#ffd58a;border:1px solid #7a5a22}
+.v169-memo .v169-hint{font-size:12px;color:#7f9cc4;margin-left:auto}.v169-memo .v169-hint::after{content:'눌러서 보기'}.v169-memo[open] .v169-hint::after{content:'접기'}
+.v169-body{padding:0 0 12px;display:grid;gap:10px}
+.v169-grp{border-radius:8px;padding:10px 12px;background:#132c4f;border-left:3px solid #4f7fbf}
+.v169-grp.warn{background:#2b2213;border-left-color:#d7a54a}
+.v169-grp h4{margin:0 0 6px;font-size:13px;color:#eef3fa}
+.v169-grp.warn h4{color:#ffd58a}
+.v169-grp ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.v169-grp li{font-size:13px;line-height:1.6;color:#c4d2e4}
+.v169-grp.warn li{color:#ffe2b8}
+#scope.v169-done{display:none!important}
+p.v169-src{display:none!important}
+@media print{.v169-memo{border:1px solid #bbb;background:#fff;color:#000}.v169-memo>summary,.v169-memo>summary b{color:#000}.v169-memo .v169-hint{display:none}.v169-grp,.v169-grp.warn{background:#fff;border-left-color:#888}.v169-grp h4,.v169-grp li,.v169-grp.warn h4,.v169-grp.warn li{color:#000}.v169-memo .v169-badge{background:#fff;color:#000;border-color:#888}}
+</style>
+<script id="v169-memo-js">(function(){
+const num=v=>{const n=Number(String(v).replace(/,/g,''));return isFinite(n)?n.toLocaleString('ko-KR',{maximumFractionDigits:2}):v};
+const floors=t=>{const m=[...t.matchAll(/(지상|지하) (\d+)층/g)].map(x=>({g:x[1],n:+x[2]}));if(!m.length)return t;const out=[];['지하','지상'].forEach(g=>{const ns=m.filter(x=>x.g===g).map(x=>x.n).sort((a,b)=>a-b);let i=0;while(i<ns.length){let j=i;while(j+1<ns.length&&ns[j+1]===ns[j]+1)j++;out.push(g+' '+(i===j?ns[i]:ns[i]+'~'+ns[j])+'층');i=j+1;}});const rest=t.replace(/(,?\s*(지상|지하) \d+층)+/g,'').trim();return out.join(', ')+(rest?' '+rest:'')};
+/* 원문 안내 → {g:묶음, w:주의, t:요약} */
+function brief(text,warn){
+ let m;
+ if(m=text.match(/^용도 면적 입력 합계 ([\d.,]+)㎡ \/ 용도 미입력 면적 ([\d.,]+)㎡/))return warn?{g:'in',w:1,t:'용도 미입력 면적 '+num(m[2])+'㎡ — 비해당으로 보지 않고 추가 확인에 남김'}:null;
+ if(m=text.match(/^증축 대상 층: (.+)$/))return {g:'ext',t:'대상 층: '+floors(m[1]),k:'floor'};
+ if(m=text.match(/^별개 대상물 비해당: 전체 ([\d.,]+)㎡/))return {g:'ext',t:'산정: 별개 대상물 아님 → 전체 '+num(m[1])+'㎡ 규모로 판단'};
+ if(/^별개 대상물 여부 미확인/.test(text))return {g:'in',w:1,t:'별개 대상물 여부 미확인 — 산정 단위에 따라 달라지는 시설은 추가 확인으로 표시'};
+ if(m=text.match(/별개 대상물 요건 확인 입력: 증축 부분 ([\d.,]+)㎡/))return {g:'ext',t:'산정: 별개 대상물 → 증축 부분 '+num(m[1])+'㎡만으로 판단 (기존 부분 제외)'};
+ if(m=text.match(/^증축 특례 적용: (.+?) \/ 적용 범위: 증축 부분 \((.+?)\), 면적 ([\d.,]+)㎡/))return {g:'ext',t:'특례: '+m[1].trim()+' → 증축 부분 '+num(m[3])+'㎡에만 적용, 기존 부분 제외 (공용설비 연결·용량은 별도 확인)',k:'exc',a:m[3]};
+ if(/^증축: 특례 해당 없음/.test(text))return {g:'ext',t:'특례 없음 → 기존 부분 포함 전체에 증축 당시 기준 적용'};
+ if(/^증축: 기존 부분 포함 전체가 원칙/.test(text))return {g:'in',w:1,t:'증축 특례 요건 미확인 — 적용 범위 확정 전 추가 검토'};
+ if(/^층별 면적은 일부 또는 전부 미입력/.test(text))return {g:'in',w:1,t:'층별 면적 미입력 — 미입력 층의 면적·무창층 기준은 추가 확인',k:'fa'};
+ if(/^같은 층·용도·면적의 구역이 반복/.test(text))return {g:'in',w:1,t:'같은 층·용도·면적 구역 반복 입력 — 서로 다른 실제 구역인지 확인 (합산 시 면적 포함)'};
+ if(/^같은 용도 전체 면적 또는 해당 층 전체 면적이 비어/.test(text))return {g:'in',w:1,t:'같은 용도 전체 면적 미입력 — 누락 면적 관련 시설은 추가 확인',k:'ua'};
+ if(/^복합용도 여부·법정 복합건축물 분류가 미확정/.test(text))return {g:'in',w:1,t:'복합용도 미확정 — 용도별 기준과 복합건축물 기준을 함께 확인'};
+ if(/^주차시설의 면적·위치·대수/.test(text))return {g:'in',w:1,t:'주차시설 면적·위치·대수 미입력 — 해당 시 상세 조건에 입력'};
+ if(m=text.match(/^신청·신고일: ([^ ]+)/))return {g:'base',t:'신청·신고일 '+m[1]+' — 현행 기준 비교이며 과거 기준·경과조치는 별도 확인'};
+ if(/^용도변경 부분에 대한 현행 기준 검토/.test(text))return {g:'base',t:'용도변경 부분의 현행 기준 검토 — 제15조 특례·변경 전 기준·기존 시설 적합성 확인 후 추가 설치 확정'};
+ if(/^‘기준 해당’은 면제·대체/.test(text))return {g:'base',t:'‘기준 해당’은 면제·대체 검토 전 설치대상 조건 — 중복 설비는 별표 5 면제, 특례는 별도 확인'};
+ if(/^변경 면적을 건물·층 전체 면적의 하한으로/.test(text))return {g:'base',t:'변경 면적을 건물·층 전체 면적의 하한으로 반영 — 연면적·층 면적·무창층 등 미입력 조건 관련 시설은 추가 확인에 표시'};
+ return {g:warn?'in':'base',w:warn?1:0,t:text};
+}
+const G=[['in','⚠ 입력 확인'],['ext','증축 적용 범위'],['base','판정 기준']];
+function build(items,extra){
+ const list=items.map(x=>brief(x.text,x.warn)).filter(Boolean);
+ (extra||[]).forEach(e=>list.push(e));
+ /* 대상 층 + 특례 면적 합치기 */
+ const fl=list.find(x=>x.k==='floor'),ex=list.find(x=>x.k==='exc');
+ if(fl&&ex){fl.t+=' · 증축 부분 '+num(ex.a)+'㎡';}
+ const fa=list.find(x=>x.k==='fa'),ua=list.find(x=>x.k==='ua');if(fa&&ua){fa.t='층별·같은 용도 면적 미입력 — 누락 면적·무창층 관련 시설은 추가 확인';list.splice(list.indexOf(ua),1);}
+ const seen=new Set(),uniq=list.filter(x=>!seen.has(x.t)&&seen.add(x.t));
+ const d=document.createElement('details');d.className='v169-memo';
+ const warnN=uniq.filter(x=>x.g==='in').length;
+ const s=document.createElement('summary');s.innerHTML='<b>검토 메모</b><span>'+uniq.length+'개</span>'+(warnN?'<span class="v169-badge">⚠ 입력 확인 '+warnN+'건</span>':'')+'<span class="v169-hint"></span>';
+ d.append(s);const body=document.createElement('div');body.className='v169-body';
+ G.forEach(([g,title])=>{const xs=uniq.filter(x=>x.g===g);if(!xs.length)return;const box=document.createElement('section');box.className='v169-grp'+(g==='in'?' warn':'');const h=document.createElement('h4');h.textContent=title;const ul=document.createElement('ul');xs.forEach(x=>{const li=document.createElement('li');li.textContent=x.t;ul.append(li)});box.append(h,ul);body.append(box)});
+ d.append(body);d.dataset.v89='1';
+ return d;
+}
+window.V169Memo=build;
+/* 신축·증축 (#scope) */
+let t1;function scope(){const sc=document.getElementById('scope');if(!sc)return;const old=sc.nextElementSibling&&sc.nextElementSibling.classList.contains('v169-memo')?sc.nextElementSibling:null;const ps=[...sc.children].filter(p=>p.tagName==='P');if(!ps.length){old&&old.remove();sc.classList.remove('v169-done');return}const items=ps.map(p=>({text:p.textContent,warn:p.classList.contains('warn')}));const memo=build(items);if(old)old.replaceWith(memo);else sc.after(memo);sc.classList.add('v169-done')}
+/* 용도변경 (#change-output 하단 안내) */
+function change(){const out=document.getElementById('change-output');if(!out)return;const ps=[...out.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('v169-src')&&/^변경 면적을 건물·층 전체 면적의 하한으로/.test(p.textContent));ps.forEach(p=>{p.classList.add('v169-src');const warns=[...out.querySelectorAll(':scope > p.note.warn')].filter(w=>!w.classList.contains('v169-src'));warns.forEach(w=>w.classList.add('v169-src'));const items=[...warns.map(w=>({text:w.textContent,warn:true})),{text:p.textContent,warn:false},{text:'‘기준 해당’은 면제·대체를 검토하기 전',warn:false}];p.after(build(items))})}
+function run(){clearTimeout(t1);t1=setTimeout(()=>{try{scope()}catch(e){console.error('V169',e)}try{change()}catch(e){console.error('V169',e)}},0)}
+function boot(){const sc=document.getElementById('scope'),co=document.getElementById('change-output');if(sc)new MutationObserver(run).observe(sc,{childList:true});if(co)new MutationObserver(run).observe(co,{childList:true});run()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+let opened=[];window.addEventListener('beforeprint',()=>{opened=[...document.querySelectorAll('.v169-memo:not([open])')];opened.forEach(d=>d.open=true)});window.addEventListener('afterprint',()=>{opened.forEach(d=>d.open=false);opened=[]});
+})();</script>
+
+</body></html>
