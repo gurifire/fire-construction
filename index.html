@@ -4611,4 +4611,67 @@ let opened=[];window.addEventListener('beforeprint',()=>{opened=[...document.que
 .v170-g li.v89-yes .q{color:#ffd58a;font-weight:700}
 @media print{.v170-g,.v170-g.first{background:#fff;border-color:#999}.v170-g>summary,.v170-g li .q,.v170-g li .f{color:#000}.v170-g>summary .n::after{content:''}}
 </style>
+<style id="v171-resume-css">
+#v171-toast{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-radius:12px;background:#132c4f;border:1px solid #4f7fbf;color:#eef3fa;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.45);max-width:calc(100vw - 24px)}
+#v171-toast button{all:unset;cursor:pointer;padding:6px 10px;border-radius:8px;background:#244a7a;color:#fff;font-size:13px;white-space:nowrap}
+@media print{#v171-toast{display:none}}
+</style>
+<script id="v171-resume-js">/* V171: 홈 화면 앱(모바일)에서 다른 앱에 다녀오면 브라우저가 페이지를 다시 불러와 입력이 사라지는 문제 —
+   입력값·보던 결과·스크롤 위치를 이 기기에 자동 보관하고, 3시간 안에 다시 열리면 그대로 복원. */
+(function(){
+const KEY='v171-session',MAX=3*3600e3;let restoring=false,skip=false,t=0;
+const $=id=>document.getElementById(id);
+const roots=()=>[['form',$('form')],['change',$('change-form')],['quick',$('v132-quick')]].filter(x=>x[1]);
+const ctrls=r=>[...r.querySelectorAll('input,select,textarea')].filter(e=>!['file','button','submit','reset','password','search'].includes(e.type)&&!e.closest('#v85-reg'));
+const sig=e=>e.tagName+':'+(e.type||'')+':'+(e.id||e.name||e.dataset.k||e.dataset.q||'');
+const vis=e=>e&&!e.hidden&&e.offsetParent!==null;
+function snap(){if(restoring||skip)return;try{
+ const tab=document.querySelector('.v132-tabs button[aria-selected="true"]');
+ const s={t:Date.now(),y:Math.round(scrollY),tab:tab?tab.dataset.m:'full',qm:($('v132-quick')||{dataset:{}}).dataset.qm||'all',
+  n:{floor:$('floorRows')?$('floorRows').children.length:0,change:document.querySelectorAll('#change-rows .row').length},
+  shown:{b:!!($('tables')&&$('tables').children.length&&vis($('result'))),c:!!($('change-result')&&!$('change-result').hidden&&$('change-output')&&$('change-output').children.length),q:!!($('v132-qout')&&$('v132-qout').children.length&&vis($('v132-quick')))},f:{}};
+ roots().forEach(([k,r])=>{s.f[k]=ctrls(r).map(e=>[sig(e),(e.type==='checkbox'||e.type==='radio')?e.checked:e.value])});
+ localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+const later=()=>{clearTimeout(t);t=setTimeout(snap,400)};
+['input','change','click'].forEach(ev=>document.addEventListener(ev,later,true));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')snap()});
+window.addEventListener('pagehide',snap);
+let st=0;window.addEventListener('scroll',()=>{clearTimeout(st);st=setTimeout(snap,600)},{passive:true});
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const fire=e=>{e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}))};
+function set(e,v){
+ if(e.type==='radio'){if(v&&!e.checked)e.click();return}
+ if(e.type==='checkbox'){if(e.checked!==v){e.checked=v;fire(e)}return}
+ if(e.value===v)return;
+ if(e.tagName==='SELECT'&&![...e.options].some(o=>o.value===v))return;
+ if(e.readOnly)return;
+ e.value=v;fire(e);
+}
+function apply(s){roots().forEach(([k,r])=>{const saved=s.f[k]||[];const cur=ctrls(r);let j=0;for(const [g,v] of saved){let m=j;while(m<cur.length&&sig(cur[m])!==g)m++;if(m>=cur.length)continue;try{set(cur[m],v)}catch(e){}j=m+1;}})}
+function hasData(s){if(s.shown.b||s.shown.c||s.shown.q)return true;return Object.values(s.f).some(a=>a.some(([g,v])=>/:(number|text|tel)?:/.test(g)&&/^INPUT:(number|text|tel|):/.test(g)&&String(v).trim()!==''))}
+function toast(){const d=document.createElement('div');d.id='v171-toast';d.innerHTML='<span>보던 화면을 이어서 열었습니다.</span><button type="button" data-a="new">처음부터</button><button type="button" data-a="ok">확인</button>';
+ d.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.a==='new'){skip=true;try{localStorage.removeItem(KEY)}catch(x){}location.reload();}else d.remove();};
+ document.body.append(d);setTimeout(()=>d.remove(),8000);}
+async function restore(){let s;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+ if(!s||!s.f||Date.now()-s.t>MAX||!hasData(s))return;
+ restoring=true;try{
+  if(s.tab==='quick'){const b=document.querySelector('.v132-tabs button[data-m="quick"]');b&&b.click();await wait(60);
+   const q=document.querySelector('#v132-quick .q-mode button[data-qm="'+s.qm+'"]');q&&q.click();}
+  for(let pass=0;pass<4;pass++){
+   let g=0;while($('floorRows')&&$('addFloor')&&$('floorRows').children.length<s.n.floor&&g++<60)$('addFloor').click();
+   g=0;while($('change-add')&&document.querySelectorAll('#change-rows .row').length<s.n.change&&g++<60)$('change-add').click();
+   apply(s);await wait(120);
+  }
+  if(s.shown.b&&$('form'))$('form').requestSubmit();
+  if(s.shown.c&&$('change-form'))$('change-form').requestSubmit();
+  if(s.shown.q&&$('v132-go'))$('v132-go').click();
+  await wait(350);window.scrollTo(0,s.y||0);await wait(150);window.scrollTo(0,s.y||0);
+ }catch(e){console.error('V171',e)}
+ restoring=false;toast();snap();
+}
+window.V171Resume={snap,restore};
+const go=()=>setTimeout(restore,450);
+if(document.readyState==='complete')go();else window.addEventListener('load',go);
+})();</script>
+
 </body></html>
