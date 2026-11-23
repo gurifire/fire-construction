@@ -412,7 +412,7 @@ window.mountConstructionStatus=function(target,rows,mode){
 </script><header><div class="topline"><a class="identity" href="#workspace"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V6l8-3 8 3v15M9 21v-5h6v5M8 8h1m6 0h1M8 12h1m6 0h1M2 21h20"/></svg></span><span>소방시설 검토 도우미<small>건축 협의 지원</small></span></a></div>
 </header><nav class="workspace-nav" aria-label="검토 단계"><div><a href="#form">01 <span>공사 유형</span></a><a href="#input-anchor" id="nav-input">02 <span>정보 입력</span></a><button type="button" id="nav-result">03 <span>검토 결과</span></button><div id="law-version-card" class="nav-law-version"><label class="sr" for="law-version">적용 기준 선택</label><select id="law-version" aria-label="적용 기준 선택"></select><input id="law-date" type="date" aria-label="기준 날짜 달력" aria-describedby="law-date-feedback" title="기준 날짜 달력" hidden><p id="law-version-status" class="help" role="status" hidden></p><details id="law-bundle-detail"><summary>적용 법령</summary><div id="law-bundle-laws"></div></details><p id="law-date-feedback" role="status"></p></div><a href="#guide">이용안내 ↗</a></div></nav><section id="v110-hero" aria-label="소개"><div class="v110-wrap"><div class="v111-copy"><p class="v110-eyebrow"><i></i>건축허가 동의 · 민원 상담 · 현장 확인</p><h1>건축 개요 한 번 입력으로,<br><em>소방시설 검토</em>까지.</h1><p class="v110-sub"><span class="v125-long">신축·증축·용도변경별 설치대상을 현행 기준으로 판정하고, 과거 날짜를 고르면 당시 시행령의 기본 설치기준을 선별합니다.</span><span class="v125-short">신축·증축·용도변경 설치대상 판정<br>과거 날짜는 당시 기준 선별 조회</span></p><div class="v110-cta"><a class="v110-go" href="#form">검토 시작 <b>›</b></a><a class="v110-link" href="#guide">결과 읽는 방법</a></div></div><div class="v129-side"><div class="v125-mini"><div id="v125-mini-svg"></div></div><div class="v129-htl" aria-label="법령 연혁"><div class="v129-h">LAW TIMELINE</div><ol id="v130-tl"></ol></div></div><div class="v127-tl" aria-label="법령 연혁"><div class="v127-tl-h"><span>LAW TIMELINE</span><span>날짜를 고르면 당시 기준으로 선별 조회</span></div><ol><li><b>1992</b><span>소방법<br>시행령</span></li><li><b>2004</b><span>설치·유지법<br>별표</span></li><li><b>2022</b><span>설치·관리법<br>별표</span></li><li class="on"><b>현재</b><span id="v127-now">최신 기준</span></li></ol></div><div class="v119-panel" aria-label="현행 기준 층별 소방시설 단면도와 법령 연혁"><div class="v119-head"><span class="v119-title">현행 기준 층별 소방시설 · <b id="v119-sample" style="font-weight:500">업무시설 예시</b></span></div><div id="v119-section" class="v119-section"></div><div class="v119-legend" id="v119-legend"></div><div class="v119-tl"><div class="v119-tl-h"><span>LAW TIMELINE</span><span>날짜를 고르면 당시 기준으로 선별 조회</span></div><ol><li><b>1992</b><span>소방법 시행령</span></li><li><b>2004</b><span>설치·유지법 별표</span></li><li><b>2022</b><span>설치·관리법 별표</span></li><li class="on"><b>현재</b><span id="v119-now">최신 기준</span></li></ol></div></div></div></section><section id="historical-review" class="card" hidden style="max-width:1100px;margin:24px auto;padding:24px">
  <section id="history-catalog" hidden>
-  <h2>날짜별 소방시설 간편검색</h2>
+  <h2>종전 기준 검색</h2>
   <p id="history-catalog-source"></p>
   <div id="history-catalog-links"></div>
   <form id="history-catalog-form">
@@ -1419,7 +1419,7 @@ function mount(){
   }
   if(ex.cond.length){
    const det=mk('details','v180-box v180-cond');det.open=true;
-   det.append(mk('summary','','면제 받을 수 있는 경우 <em>'+ex.cond.length+'</em><i>그 당시 기준</i>'));
+   det.append(mk('summary','','면제 받을 수 있는 경우 <em>'+ex.cond.length+'</em><i>종전 기준</i>'));
    const head=mk('div','v180-cond-head','<span>설치 대상</span><span>이렇게 하면 그 범위는 설치 안 해도 됨</span>');det.append(head);
    for(const c of ex.cond)det.append(mk('div','v180-row v180-c','<b>'+esc(c.name)+'</b><span>'+(c.cond?esc(c.text):esc(c.text)+' 설치 시')+'</span><small>'+esc(c.ref)+(c.have?' · <em class="v180-have">'+c.have.map(esc).join('·')+'도 설치 대상 → 그 범위 면제 가능</em>':'')+'</small>'));
    det.append(mk('p','v180-note','면제는 대체 설비가 당시 기준에 맞게 설치된 범위(유효범위)에만 적용됩니다. 위 목록은 설치 대상 판정을 바꾸지 않습니다.'));
@@ -1428,12 +1428,12 @@ function mount(){
  }
  function v181HistoryRender(output,ex,head,sub,basis,note){
   const rows=ex.rows,rel=new Set(ex.relief.map(r=>r[0])),fmt=n=>Number(n).toLocaleString('ko-KR');
-  const html=window.URender({head,sub,band:{kind:'era',title:'그 당시 기준 — '+basis,text:'당시 면제·대체 조항을 함께 적용했습니다.'},
+  const html=window.URender({head,sub,band:{kind:'era',title:'종전 기준 — '+basis,text:'당시 면제·대체 조항을 함께 적용했습니다.'},
    yes:rows.filter(r=>r[1]==='yes').map(r=>({name:r[0],chips:[{t:window.URshortRef(r[2]),k:'ref'}],why:[r[2]]})),
    review:rows.filter(r=>r[1]==='review').map(r=>({name:r[0],reason:r[2]})),
    no:rows.filter(r=>r[1]==='no'&&!rel.has(r[0])).map(r=>({name:r[0],reason:r[2]})),
    subs:ex.subs,relief:ex.relief.map(r=>({name:r[0],text:'→ 내화구조·불연 마감 완화 '+r.relief.m+'배 적용',small:'원래 연면적 '+fmt(r.relief.a)+'㎡ 이상이면 대상이지만, 주요구조부 내화구조·실내 불연 마감이면 '+fmt(r.relief.a*r.relief.m)+'㎡ 이상만 대상 ('+(ex.prefix||'소방법시행령')+' '+r.relief.r+')'})),
-   cond:ex.cond.map(c=>({name:c.name,text:c.text,cond:c.cond,ref:c.ref,have:c.have})),condTag:'그 당시 기준',note});
+   cond:ex.cond.map(c=>({name:c.name,text:c.text,cond:c.cond,ref:c.ref,have:c.have})),condTag:'종전 기준',note});
   const wrap=document.createElement('div');wrap.innerHTML=html;output.append(wrap.firstElementChild);
  }
  function v181DateLabel(){const [y,m,d]=appliedDate.split('-').map(Number);return y+'. '+m+'. '+d+'. 기준';}
@@ -3750,10 +3750,7 @@ body.v132-q #form,body.v132-q #change-module,body.v132-q #result{display:none!im
   const m=quick?'quick':/^용도/.test(t)?'change':/^증축/.test(t)?'full':'new'; // V144: 신축도 다시 표시
   if(m===mode)return;mode=m;
   reg.classList.toggle('v142-off',m==='off');
-  if(m==='quick'){const lead=$('v138-lead');if(lead)lead.after(reg);}
-  else if(m==='change'){const f=$('change-form');if(f)f.before(reg);}
-  else if(home.parentNode)home.parentNode.insertBefore(reg,home.nextSibling);
-  const help=reg.querySelector('.v85-help');if(help&&HELP[m])help.textContent=HELP[m];
+  /* V195: 대장 상자는 상단 공통 위치에 고정 */
   const ref=$('v142-ref');if(ref)ref.hidden=m!=='change'||!ref.textContent;
  }
  function applied(e){
@@ -4048,7 +4045,7 @@ window.V146FoldNotmet=function(root){
 (function(){
  'use strict';
  const $=id=>document.getElementById(id);
- let item=null,rows=[],kind='';
+ let item=null,rows=[],kind='';document.addEventListener('v195-clear',()=>{item=null;const b=$('v147-pick');if(b)b.hidden=true;try{hereBtns();}catch(e){}});
  const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
  const r2=n=>Math.round(n*100)/100;
@@ -4169,9 +4166,8 @@ window.V146FoldNotmet=function(root){
  /* V149: 구역을 추가·삭제하면 「채울 구역」 목록을 바로 갱신(빈 구역 우선) */
  (function watch(){const cr=$('change-rows');if(!cr){setTimeout(watch,500);return;}let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(()=>{const b=$('v147-body');if(b&&!b.hidden)targets();else hereBtns();},60);}).observe(cr,{childList:true});})();
  function onApplied(e){{
-  if(!/^용도/.test(typeNow())||document.body.classList.contains('v132-q'))return;
   item=(e.detail&&e.detail.it)||null;rows=[];lastRows=[];
-  const b=box();b.hidden=!item;$('v147-body').hidden=true;msg('');pinned=null;setTimeout(hereBtns,0);
+  const b=box();b.hidden=!item||!/^용도/.test(typeNow())||document.body.classList.contains('v132-q');$('v147-body').hidden=true;msg('');pinned=null;setTimeout(hereBtns,0);
   $('v147-help').textContent='「'+((item&&(String(item.bldNm||'').trim()||String(item.dongNm||'').trim()||String(item.platPlc||'').trim()))||'선택한 건물')+'」의 대장에서 '+(/집합/.test(item&&item.regstrKindCdNm||'')?'호실별 전유면적':'층별 용도·면적')+'을 불러와, 고른 층·'+(/집합/.test(item&&item.regstrKindCdNm||'')?'호실':'항목')+'로 「변경 전 용도·층·바닥면적」을 채웁니다.';
   const m=document.getElementById('v85-msg');if(m){m.textContent='기존 건물 정보를 아래에 표시했습니다. 「층별 정보 불러오기」로 변경 구역을 채울 수 있습니다.';m.classList.add('ok');}
  }}
@@ -4473,7 +4469,7 @@ document.addEventListener('click',e=>{
  setTimeout(()=>{document.querySelectorAll('#floorRows .floor-row').forEach(r=>{if(before.has(r))return;decorate(r);const oi=r.querySelector('.v157-old'),ai=r.querySelector('.v157-add');oi.value=o===''?'0':o;ai.value=a===''?'0':a;fire(ai,['input']);});mode();},0);
 },true);
 /* ===== 대장 층별 면적 → 기존 바닥면적 ===== */
-let item=null;
+let item=null;document.addEventListener('v195-clear',()=>{item=null;const b=$('v157-reg');if(b)b.hidden=true;});
 function regBox(){
  let b=$('v157-reg');if(b)return b;
  b=document.createElement('section');b.id='v157-reg';b.hidden=true;
@@ -5085,6 +5081,42 @@ label:has(>.v193-tag){position:relative}
 .v194-msg{margin:0;font-size:12.5px;color:#ffbf99;min-height:1em}.v194-msg.ok{color:#9fd8b4}
 /* V194: 개인 인증키 사용 숨김 (소방서 중간 서버 키 사용) */
 #v85-reg .v91-own-key,#v85-reg .v85-key,#v85-reg #v85-key-state,#v85-reg #v98-keynote{display:none!important}
+/* V195: 2안+ 화면 구조 */
+#law-version,#law-date,#law-date-feedback,#law-version-status{display:none!important}
+#workspace>.workspace-heading h2{display:none}
+#v195-top{max-width:1100px;margin:22px auto 0;padding:0 16px;box-sizing:border-box}
+#v195-top .v195-title{margin:0 0 12px;font-size:22px;color:#fff}
+#v195-top #v85-reg{margin:0 0 10px!important}
+#v195-top .v132-tabs{display:grid!important;grid-template-columns:repeat(3,1fr);width:100%!important;box-sizing:border-box;margin:12px 0 0}
+#v195-top .v132-tabs button{all:unset;cursor:pointer;text-align:center;padding:10px 4px;border-radius:9px;font-size:14px;font-weight:700;color:#9fb3cc;white-space:nowrap}
+#v195-top .v132-tabs button[aria-selected=true]{background:#ff7a45;color:#fff}
+#v195-top .v132-tabs button:focus-visible{outline:2px solid #8ec0ff}
+#v195-bldg{margin:-4px 0 0;padding:10px 12px;border-radius:0 0 10px 10px;background:#0b1c33;border:1px solid #2f6f5a;display:grid;gap:3px;font-size:12.5px;line-height:1.5;color:#cfe0f5}
+#v195-bldg .v195-bh b{color:#7fe0b4}
+#v195-bldg .v195-addr{color:#eef3fa;font-weight:600}
+#v195-bldg .v195-dates{color:#9fb3cc;font-size:12px}
+#v195-bldg .v195-warn{margin-top:3px;padding-top:5px;border-top:1px dashed #2f4a6e;color:#ffdd8a;font-size:12px}
+#v195-bldg .v195-warn::before{content:'⚠ '}
+#v195-bldg .v195-hint{color:#8fa6c2;font-size:11.5px}
+#v195-bldg .v195-cand{color:#9fb3cc;font-size:12px}
+#v195-bldg .v195-cand button{all:unset;cursor:pointer;display:inline-block;margin:3px 4px 0 0;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid #8ec0ff;background:#1c3a63;color:#fff}
+#v195-bldg .v195-cand button.on{background:#2a63ad}
+#v195-bldg .v195-acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+#v195-bldg .v195-acts button{all:unset;cursor:pointer;flex:1 1 auto;text-align:center;font-size:13px;font-weight:700;padding:9px 10px;border-radius:8px;border:1px solid #3a5f92;background:#13284a;color:#dfe9f6}
+#v195-bldg .v195-acts button:focus-visible{outline:2px solid #8ec0ff}
+#history-catalog>h2{display:none}
+#v195-date .v195-eh{margin:0 0 4px;font-size:20px;color:#fff}
+#v195-date{margin:0 0 16px;padding:12px 14px;border-radius:12px;background:#0f2441;border:1px solid #2f5687;display:grid;gap:6px}
+#v195-date label{font-weight:700;color:#eef3fa;font-size:14.5px}#v195-date label small{font-weight:400;color:#9fb3cc;font-size:12px}
+#v195-date .v195-drow{display:flex;gap:8px;flex-wrap:wrap}
+#v195-date input{flex:1 1 180px;min-height:46px;font-size:16px;margin:0}
+#v195-date button{all:unset;cursor:pointer;flex:0 0 auto;padding:0 14px;min-height:46px;display:flex;align-items:center;border-radius:9px;background:#ff7a45;color:#fff;font-weight:700;font-size:13.5px}
+#v195-date p{margin:0;font-size:12.5px;color:#9fb3cc;line-height:1.5}
+#v195-date p.ok{color:#7fe0b4}#v195-date p.w{color:#ffdd8a}#v195-date p.stop{color:#ffb48f;font-weight:700}
+@media(max-width:640px){#v195-top{padding:0 12px}#v195-top .v132-tabs button{font-size:13.5px}}
+@media print{#v195-top{display:none}}
+#historical-review #v195-date button#v195-fill{background:#ff7a45!important;color:#fff!important;border:0!important}
+#v195-top #v195-bldg .v195-acts button{background:#13284a!important;color:#dfe9f6!important;border:1px solid #3a5f92!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5255,99 +5287,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
 </script>
-<script id="v193-register">/* V193: 건축물대장 불러오기 — 파란 바 디자인, 검색별 자동 입력 안내, 날짜 검색(간편검색) 연결, 불러온 값 표시 */
-(function(){
- 'use strict';
- const $=id=>document.getElementById(id);
- const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
- const SUB={new:'용도·연면적·층수 자동 입력',full:'증축 전 연면적·층수·용도 자동 입력',change:'변경 전 용도 자동 입력 · 기존 건물 정보 표시',quick:'연면적·층수·주용도 자동 입력',date:'기준일·연면적·층수 자동 입력'};
- const WARN={new:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',full:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',change:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',quick:'',date:'대장 현재 값 — 검색하려는 시점 이후 증축·용도변경 등이 있었다면 확인해서 고쳐 넣으세요.'};
- let back=null,curMode='',last=null; // last={mode,it,els:[[el,val]],src}
- const typeNow=()=>{const r=document.querySelector('label.project-type input:checked');return r?r.value:'신축';};
- const isDate=()=>{const hr=$('historical-review'),lv=$('law-version');return !!(hr&&!hr.hidden&&lv&&lv.value==='date');};
- function modeNow(){if(isDate())return 'date';if(document.body.classList.contains('v132-q'))return 'quick';const t=typeNow();return /^용도/.test(t)?'change':/^증축/.test(t)?'full':'new';}
- function bar(){const reg=$('v85-reg');if(!reg)return;const s=reg.querySelector(':scope>summary');if(!s)return;const m=modeNow();const want='건축물대장에서 불러오기<small>주소 검색 → 건물 선택 → '+SUB[m]+'</small>';if(s.innerHTML!==want)s.innerHTML=want;}
- function place(){
-  const reg=$('v85-reg');if(!reg)return;const m=modeNow();
-  if(m==='date'){const f=$('history-catalog-form');if(f){const grid=f.querySelector('.grid')||f.firstElementChild;if(reg.parentNode!==f){back={p:reg.parentNode,n:reg.nextSibling};grid.before(reg);}}
-   const help=reg.querySelector('.v85-help');if(help)help.textContent='건축물대장을 찾아 검색 기준일(허가일 → 착공일 → 사용승인일 순)과 연면적·층수 칸을 채웁니다. 당시 용도는 후보를 보고 직접 고르세요.';}
-  else if(back&&reg.parentNode===$('history-catalog-form')){try{back.p.insertBefore(reg,back.n&&back.n.parentNode===back.p?back.n:null);}catch(e){}back=null;}
-  if(m==='quick'){const help=reg.querySelector('.v85-help');const t='건축물대장을 찾아 아래 연면적·층수·주용도 칸을 채웁니다. 「특정 층 검색」은 아래 「대장 층별 정보로 층 채우기」로 층·바닥면적·층 용도를 채울 수 있습니다.';if(help&&help.textContent!==t)help.textContent=t;}
-  if(m!==curMode){curMode=m;clearMarks();}
-  bar();
- }
- function clearMarks(){document.querySelectorAll('.v193-tag').forEach(t=>t.remove());const p=$('v193-picked');if(p)p.remove();last=null;}
- function tag(el){if(!el)return;const l=el.closest('label');if(!l||l.querySelector(':scope>.v193-tag'))return;const t=document.createElement('span');t.className='v193-tag';t.textContent='대장';
-  const tn=[...l.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(tn)tn.after(t);else l.prepend(t);}
- const ymd=d=>/^\d{8}$/.test(String(d||''))?String(d).slice(0,4)+'. '+Number(String(d).slice(4,6))+'. '+Number(String(d).slice(6,8))+'.':'';
- function pickedBox(m,it,extra){
-  let p=$('v193-picked');if(p)p.remove();const reg=$('v85-reg');if(!reg)return;
-  p=document.createElement('div');p.id='v193-picked';p.className='v193-picked';
-  const addr=it.newPlatPlc||it.platPlc||'';const nm=it.bldNm?' '+it.bldNm:'';
-  p.innerHTML='<b class="v193-ok">✓ 건축물대장에서 불러옴</b><span class="v193-addr">'+esc(addr+nm)+' · 주용도 '+esc(it.mainPurpsCdNm||'미기재')+'</span>'+(extra||'')+(WARN[m]?'<span class="v193-warn">'+esc(WARN[m])+'</span>':'');
-  reg.after(p);
- }
- function dateApply(it){
-  const order=[['pmsDay','허가일'],['stcnsDay','착공일'],['useAprDay','사용승인일']];
-  const got=order.map(([k,l])=>[String(it[k]||'').trim(),l]);const hit=got.find(([v])=>/^\d{8}$/.test(v)&&v!=='00000000');
-  const dates='<span class="v193-dates">허가 '+(ymd(got[0][0])||'미기재')+' · 착공 '+(ymd(got[1][0])||'미기재')+' · 사용승인 '+(ymd(got[2][0])||'미기재')+'</span>';
-  let note='';
-  const f0=$('history-catalog-form');
-  const fillSize=()=>{const f=$('history-catalog-form');if(!f)return [];const els=[];const put=(n,v)=>{const el=f.elements[n];if(!el)return;const has=v!==''&&v!=null&&!isNaN(Number(v));if(!has)return;el.value=String(n==='area'?Math.round(Number(v)*100)/100:Number(v));fire(el);tag(el);els.push([el,el.value]);};
-   put('area',it.totArea);put('ground',it.grndFlrCnt);put('basement',it.ugrndFlrCnt);return els;};
-  if(!hit){note='<span class="v193-bad">대장에 허가일·착공일·사용승인일이 모두 비어 있습니다. 허가서·준공도면 등으로 날짜를 확인해 위 날짜 칸에 직접 넣어 주세요.</span>';pickedBox('date',it,dates+note);const els=fillSize();last={mode:'date',it,els,src:''};return;}
-  const [v,src]=hit;
-  if(v<'19770602'){note='<span class="v193-stop">'+src+'이 '+ymd(v)+'입니다. 1977. 6. 2. 이전 날짜는 당시 소방법시행령 원문이 없어 검색·판정할 수 없습니다. 현장 확인 또는 원문 자료로 검토해 주세요.</span>';pickedBox('date',it,dates+note);last=null;return;}
-  const lateNote=src==='사용승인일'?' — 실제 적용 기준일보다 늦을 수 있음':'';
-  const d=$('law-date');if(d){d.value=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);fire(d);}
-  setTimeout(()=>{place();
-   const els=fillSize();
-   const f=$('history-catalog-form');let cand='';
-   if(f&&f.elements.use){
-    const SYN=[[/업무/,/업무|사무|사업장/],[/근린/,/근린|점포|음식점|목욕|이용|사무소/],[/판매/,/판매|시장|백화점|점포/],[/숙박/,/숙박|여관|호텔|여인숙/],[/의료/,/의료|병원/],[/교육|연구/,/교육|연구|학교|학원|강습/],[/노유자/,/노유자|노인|아동|유치원|복지/],[/공동주택|아파트|기숙사/,/아파트|공동주택|기숙사/],[/문화|집회/,/문화|공연|집회|관람|전시/],[/종교/,/종교|교회|사찰/],[/운수/,/운수|정거장|정차|대합/],[/공장/,/공장/],[/창고/,/창고/],[/자동차|주차/,/차고|주차|자동차/],[/위락/,/위락|유흥|캬바레/],[/운동/,/운동|경기장/]];
-    const nm=String(it.mainPurpsCdNm||'');const rx=(SYN.find(([k])=>k.test(nm))||[])[1];
-    const sel=f.elements.use,keep=sel.value,hits=[];
-    if(rx){for(const o of [...sel.options]){if(!o.value)continue;let sub='';
-      if(rx.test(o.text))hits.push({v:o.value,t:o.text,sv:''});
-      else{sel.value=o.value;fire(sel);const st=f.elements.subtype;if(st){const so=[...st.options].find(x=>x.value&&rx.test(x.text));if(so)hits.push({v:o.value,t:o.text+' ('+so.text.replace(/\s*\([^)]*\)$/,'')+')',sv:so.value});}}}
-     sel.value=keep;fire(sel);}
-    cand=hits.length?'<span class="v193-cand">대장 주용도 「'+esc(nm)+'」 → 당시 분류 후보 '+hits.slice(0,3).map(h=>'<button type="button" data-v="'+esc(h.v)+'" data-s="'+esc(h.sv)+'">'+esc(h.t)+'</button>').join('')+'</span>':'<span class="v193-cand">대장 주용도 「'+esc(nm||'미기재')+'」에 맞는 당시 분류를 찾지 못했습니다. 「용도 분류 별표」를 보고 직접 고르세요.</span>';}
-   pickedBox('date',it,'<span class="v193-src">검색 기준일: <b>'+src+'</b>에서 가져옴'+lateNote+'</span>'+dates+cand);
-   const pk=$('v193-picked');pk&&pk.querySelectorAll('.v193-cand button').forEach(bt=>bt.onclick=()=>{const s=f.elements.use;s.value=bt.dataset.v;fire(s);setTimeout(()=>{const st=f.elements.subtype;if(st&&bt.dataset.s){st.value=bt.dataset.s;fire(st);}tag(s);pk.querySelectorAll('.v193-cand button').forEach(x=>x.classList.toggle('on',x===bt));},60);});
-   last={mode:'date',it,els,src};
-  },450);
- }
- function onApplied(e){
-  const it=e.detail&&e.detail.it||{};const m=modeNow();
-  if(m==='date'){dateApply(it);return;}
-  setTimeout(()=>{ // V142·V85 채움이 끝난 뒤 표시
-   let els=[];
-   if(m==='quick'){const q=$('v132-quick');['area','ground','basement','use'].forEach(k=>{const el=q&&q.querySelector('[data-q='+k+']');if(el&&el.value!==''){tag(el);els.push([el,el.value]);}});}
-   else if(m==='change'){document.querySelectorAll('#change-rows [data-k=before]').forEach(el=>{if(el.value){tag(el);els.push([el,el.value]);}});}
-   else{const ids=m==='full'?['oldArea','use','area','ground','basement']:['use','area','ground','basement'];ids.forEach(id=>{const el=$(id);if(el&&el.value!==''){tag(el);els.push([el,el.value]);}});}
-   pickedBox(m,it,'');last={mode:m,it,els,src:''};
-  },60);
- }
- // 사용자가 값을 고치면 그 칸의 「대장」 표시 제거
- document.addEventListener('input',e=>{if(!e.isTrusted)return;const l=e.target.closest&&e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
- document.addEventListener('change',e=>{if(!e.isTrusted||e.target.tagName!=='SELECT')return;const l=e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
- // 결과 머리줄에 출처 표시 (불러온 값이 그대로일 때만)
- new MutationObserver(()=>{if(!last)return;const heads=document.querySelectorAll('.ur-head');heads.forEach(h=>{if(h.querySelector('.v193-src-chip'))return;const ok=last.els.length&&last.els.every(([el,v])=>el.value===v);if(!ok)return;
-   const inDate=!!h.closest('#history-catalog-results');if((last.mode==='date')!==inDate)return;
-   const c=document.createElement('span');c.className='v193-src-chip';c.textContent='건축물대장 기준'+(last.src?' · '+last.src+' 기준':'');h.append(c);});}).observe(document.body,{childList:true,subtree:true});
- function start(){
-  place();
-  document.addEventListener('v85-applied',onApplied);
-  const run=$('v85-run');if(run)run.addEventListener('click',()=>{const p=$('v193-picked');if(p)p.remove();});
-  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.v132-tabs,label.project-type'))setTimeout(place,30);},true);
-  document.addEventListener('change',e=>{if(e.target&&(e.target.id==='law-version'||e.target.id==='law-date'))setTimeout(place,30);},true);
-  const hr=$('historical-review');if(hr)new MutationObserver(()=>setTimeout(place,0)).observe(hr,{attributes:true,attributeFilter:['hidden']});
-  new MutationObserver(()=>setTimeout(()=>{if(modeNow()!==curMode)place();else bar();},0)).observe(document.body,{attributes:true,attributeFilter:['class']});
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,50));else setTimeout(start,50);
-})();
-</script>
+
 <script id="v194-floors">/* V194: 층별 불러오기 보완 — 신축 「층별 바닥면적」, 빠른검색 「특정 층」에 대장 층별개요 불러오기 추가 (증축 V157·용도변경 V147은 기존 기능 유지) */
 (function(){
  'use strict';
@@ -5424,9 +5364,162 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  document.addEventListener('v85-applied',e=>{item=(e.detail&&e.detail.it)||null;sums=null;
   ['v194-new-body','v194-q-list'].forEach(id=>{const x=$(id);if(x)x.hidden=true;});['v194-new-msg','v194-q-msg'].forEach(id=>{const x=$(id);if(x)x.textContent='';});
   setTimeout(sync,80);});
+ document.addEventListener('v195-clear',()=>{item=null;sums=null;sync();});
  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type,.v132-tabs,[data-qm]'))setTimeout(sync,60);},true);
  new MutationObserver(()=>setTimeout(sync,0)).observe(document.body,{attributes:true,attributeFilter:['class']});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,100));else setTimeout(sync,100);
+})();
+</script>
+<script id="v195-layout">/* V195: 화면 구조 개편(2안+) — 공통 건축물대장 바 + 선택한 건물 상자, 탭 3칸(상세·빠른·종전 기준), 상단 날짜 선택 제거 */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const r2=n=>Math.round(Number(n)*100)/100;
+ const ymd=d=>/^\d{8}$/.test(String(d||''))&&String(d)!=='00000000'?String(d).slice(0,4)+'. '+Number(String(d).slice(4,6))+'. '+Number(String(d).slice(6,8))+'.':'';
+ const iso=d=>String(d).slice(0,4)+'-'+String(d).slice(4,6)+'-'+String(d).slice(6,8);
+ let item=null,filled=[]; // filled: [el,value]
+ window.V195State=()=>({item,filled});
+ const typeNow=()=>{const r=document.querySelector('label.project-type input:checked');return r?r.value:'신축';};
+ const isEra=()=>{const lv=$('law-version');return !!(lv&&lv.value==='date');};
+ function modeNow(){if(isEra())return 'era';if(document.body.classList.contains('v132-q'))return 'quick';const t=typeNow();return /^용도/.test(t)?'change':/^증축/.test(t)?'full':'new';}
+ const SUB={new:'용도·연면적·층수',full:'증축 전 연면적·층수·용도',change:'변경 전 용도',quick:'연면적·층수·주용도',era:'연면적·층수 (기준일은 아래에서 선택)'};
+ const WARN={new:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',full:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',change:'대장 현재 값 — 최근 증축·용도변경 등이 대장에 반영됐는지 확인하세요.',quick:'',era:'대장 현재 값 — 검색하려는 시점 이후 증축·용도변경 등이 있었다면 확인해서 고쳐 넣으세요.'};
+ /* ---------- 틀 만들기 ---------- */
+ function build(){
+  if($('v195-top'))return true;
+  const hr=$('historical-review'),reg=$('v85-reg'),tabs=document.querySelector('.v132-tabs');
+  if(!hr||!reg||!tabs)return false;
+  const top=document.createElement('section');top.id='v195-top';top.setAttribute('aria-label','건물 선택과 검색 방식');
+  top.innerHTML='<h2 class="v195-title">소방시설 설치기준 검토</h2><div id="v195-reg-slot"></div><div id="v195-bldg" hidden></div><div id="v195-tab-slot"></div>';
+  hr.before(top);
+  $('v195-reg-slot').append(reg);
+  $('v195-tab-slot').append(tabs);
+  if(!tabs.querySelector('[data-m=era]')){const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.dataset.m='era';b.setAttribute('aria-selected','false');b.textContent='종전 기준 검색';tabs.append(b);}
+  tabs.addEventListener('click',onTab,true);
+  // 종전 기준 탭: 기준일 칸
+  const d=document.createElement('div');d.id='v195-date';
+  d.innerHTML='<label for="v195-date-in">기준일 <small>(건축허가등의 동의를 요구한 시점)</small></label><div class="v195-drow"><input id="v195-date-in" type="date" min="1977-06-02"><button type="button" id="v195-fill" hidden></button></div><p id="v195-dnote" role="status"></p>';
+  hr.prepend(d);d.insertAdjacentHTML('afterbegin','<h2 class="v195-eh">종전 기준 검색</h2>');
+  const din=$('v195-date-in');try{din.max=new Date().toISOString().slice(0,10);}catch(e){}
+  din.addEventListener('change',()=>setDate(din.value));
+  $('v195-fill').onclick=()=>{const p=pms();if(p&&p.v>='19770602'){din.value=iso(p.v);setDate(din.value);}};
+  return true;
+ }
+ function setDate(v){const ld=$('law-date');if(!ld)return;ld.value=v||'';fire(ld);setTimeout(()=>{dateNote();fillMode('era');render();},500);setTimeout(render,1100);}
+ function onTab(e){
+  const b=e.target.closest('button[data-m]');if(!b)return;const m=b.dataset.m,lv=$('law-version');
+  if(m==='era'){e.stopPropagation();if(lv&&lv.value!=='date'){lv.value='date';const ld=$('law-date');const din=$('v195-date-in');if(ld&&din&&din.value)ld.value=din.value;fire(lv);}
+   document.body.classList.remove('v132-q');const q=$('v132-quick');if(q)q.hidden=true;
+   setTimeout(()=>{syncTabs();dateNote();fillMode('era');render();},350);return;}
+  if(lv&&lv.value==='date'){lv.value='latest';fire(lv);}
+  setTimeout(()=>{syncTabs();fillMode(modeNow());render();},350);
+ }
+ function syncTabs(){const m=isEra()?'era':document.body.classList.contains('v132-q')?'quick':'full';document.querySelectorAll('.v132-tabs button[data-m]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.m===m)));
+  const din=$('v195-date-in'),ld=$('law-date');if(din&&ld&&isEra()&&ld.value&&din.value!==ld.value)din.value=ld.value;
+  const t=$('v195-top');if(t)t.dataset.mode=modeNow();}
+ /* ---------- 대장 날짜 ---------- */
+ function pms(){if(!item)return null;for(const [k,l] of [['pmsDay','허가일'],['stcnsDay','착공일'],['useAprDay','사용승인일']]){const v=String(item[k]||'').trim();if(/^\d{8}$/.test(v)&&v!=='00000000')return {v,l};}return null;}
+ function dateNote(){
+  const btn=$('v195-fill'),note=$('v195-dnote'),din=$('v195-date-in');if(!btn||!note)return;
+  const p=pms();note.className='';
+  if(!item){btn.hidden=true;note.textContent='1977. 6. 2. 이후 날짜를 고르세요. 위에서 건물을 불러오면 허가일로 채울 수 있습니다.';return;}
+  if(!p){btn.hidden=true;note.textContent='대장에 허가일·착공일·사용승인일이 모두 비어 있습니다. 허가서·준공도면 등으로 확인해 직접 고르세요.';note.className='w';return;}
+  if(p.v<'19770602'){btn.hidden=true;note.textContent=p.l+'이 '+ymd(p.v)+'입니다. 1977. 6. 2. 이전 날짜는 당시 소방법시행령 원문이 없어 검색·판정할 수 없습니다. 현장 확인 또는 원문 자료로 검토하세요.';note.className='stop';return;}
+  btn.hidden=false;btn.textContent=p.l+'로 채우기 ('+ymd(p.v)+')';
+  const cur=din&&din.value?din.value.replace(/-/g,''):'';
+  if(!cur)note.textContent='소방시설 기준은 보통 건축허가등의 동의를 요구한 시점부터 적용되므로 허가일을 권장합니다.'+(p.l==='사용승인일'?' (대장에 허가·착공일이 없어 사용승인일 — 실제 적용일보다 늦을 수 있음)':'');
+  else if(cur===p.v){note.textContent='✓ 대장 '+p.l+'과 같은 날짜입니다.';note.className='ok';}
+  else{note.textContent='선택한 기준일이 대장 '+p.l+'('+ymd(p.v)+')과 다릅니다. 맞는 날짜인지 확인하세요.';note.className='w';}
+ }
+ /* ---------- 선택한 건물 상자 ---------- */
+ function render(){
+  const box=$('v195-bldg');if(!box)return;const m=modeNow();
+  const reg=$('v85-reg');const s=reg&&reg.querySelector(':scope>summary');
+  const hp=reg&&reg.querySelector('.v85-help');if(hp){const t='주소로 건물을 찾아 고르면 지금 탭의 칸('+SUB[m]+')을 채웁니다. 다른 탭으로 옮기면 그 탭의 빈 칸도 채웁니다.';if(hp.textContent!==t)hp.textContent=t;}
+  if(s){const want='건축물대장에서 불러오기<small>'+(item?'다른 건물을 찾으려면 누르세요':'건물을 한 번 고르면 세 검색에 모두 적용됩니다 (선택) · '+SUB[m]+' 자동 입력')+'</small>';if(s.innerHTML!==want)s.innerHTML=want;}
+  if(!item){box.hidden=true;box.innerHTML='';return;}
+  const addr=(item.newPlatPlc||item.platPlc||'')+(item.bldNm?' '+item.bldNm:'')+(item.dongNm?' '+item.dongNm:'');
+  const size=[item.mainPurpsCdNm||'주용도 미기재',Number(item.totArea)?r2(item.totArea).toLocaleString('ko-KR')+'㎡':'',(item.grndFlrCnt?'지상 '+item.grndFlrCnt:'')+(item.ugrndFlrCnt?' / 지하 '+item.ugrndFlrCnt:'')].filter(Boolean).join(' · ');
+  const dates='허가 '+(ymd(item.pmsDay)||'미기재')+' · 착공 '+(ymd(item.stcnsDay)||'미기재')+' · 사용승인 '+(ymd(item.useAprDay)||'미기재');
+  let extra='';
+  if(m==='era'){const f=$('history-catalog-form');const cand=f&&!f.closest('[hidden]')?candidates(f):null;
+   if(cand&&cand.length)extra='<span class="v195-cand">당시 분류 후보 '+cand.map(h=>'<button type="button" data-v="'+esc(h.v)+'" data-s="'+esc(h.sv)+'">'+esc(h.t)+'</button>').join('')+'</span>';
+   else if(cand)extra='<span class="v195-cand">대장 주용도 「'+esc(item.mainPurpsCdNm||'미기재')+'」에 맞는 당시 분류를 찾지 못했습니다. 「용도 분류 별표」를 보고 직접 고르세요.</span>';}
+  box.innerHTML='<div class="v195-bh"><b>✓ 선택한 건물</b></div><span class="v195-addr">'+esc(addr)+'</span><span class="v195-size">'+esc(size)+'</span><span class="v195-dates">'+esc(dates)+'</span>'+extra+
+   (WARN[m]?'<span class="v195-warn">'+esc(WARN[m])+'</span>':'')+
+   '<span class="v195-hint">불러온 값은 아래 칸에서 바로 고칠 수 있습니다. 대장 없이 처음부터 입력하려면 「직접 입력으로 전환」을 누르세요.</span>'+
+   '<div class="v195-acts"><button type="button" id="v195-re">다른 건물 검색</button><button type="button" id="v195-manual">직접 입력으로 전환</button></div>';
+  box.hidden=false;
+  $('v195-re').onclick=()=>{const r=$('v85-reg');if(r){r.open=true;r.scrollIntoView({behavior:'smooth',block:'start'});}};
+  $('v195-manual').onclick=manual;
+  box.querySelectorAll('.v195-cand button').forEach(bt=>bt.onclick=()=>{const f=$('history-catalog-form');const s=f.elements.use;s.value=bt.dataset.v;fire(s);setTimeout(()=>{const st=f.elements.subtype;if(st&&bt.dataset.s){st.value=bt.dataset.s;fire(st);}tag(s,true);box.querySelectorAll('.v195-cand button').forEach(x=>x.classList.toggle('on',x===bt));},60);});
+ }
+ const SYN=[[/업무/,/업무|사무|사업장/],[/근린/,/근린|점포|음식점|목욕|이용|사무소/],[/판매/,/판매|시장|백화점|점포/],[/숙박/,/숙박|여관|호텔|여인숙/],[/의료/,/의료|병원/],[/교육|연구/,/교육|연구|학교|학원|강습/],[/노유자/,/노유자|노인|아동|유치원|복지/],[/공동주택|아파트|기숙사/,/아파트|공동주택|기숙사/],[/문화|집회/,/문화|공연|집회|관람|전시/],[/종교/,/종교|교회|사찰/],[/운수/,/운수|정거장|정차|대합/],[/공장/,/공장/],[/창고/,/창고/],[/자동차|주차/,/차고|주차|자동차/],[/위락/,/위락|유흥|캬바레/],[/운동/,/운동|경기장/]];
+ let candKey='',candCache=null;
+ function candidates(f){
+  const sel=f.elements.use;if(!sel)return null;const key=($('law-date')||{}).value+'|'+(item&&item.mainPurpsCdNm)+'|'+[...sel.options].map(o=>o.text).join(',');if(key===candKey&&candCache)return candCache;
+  const nm=String(item.mainPurpsCdNm||'');const rx=(SYN.find(([k])=>k.test(nm))||[])[1];const hits=[];
+  if(rx){const keep=sel.value,keepS=f.elements.subtype?f.elements.subtype.value:'';
+   for(const o of [...sel.options]){if(!o.value)continue;if(rx.test(o.text)){hits.push({v:o.value,t:o.text,sv:''});continue;}
+    sel.value=o.value;fire(sel);const st=f.elements.subtype;if(st){const so=[...st.options].find(x=>x.value&&rx.test(x.text));if(so)hits.push({v:o.value,t:o.text+' ('+so.text.replace(/\s*\([^)]*\)$/,'')+')',sv:so.value});}}
+   sel.value=keep;fire(sel);if(f.elements.subtype&&keepS)f.elements.subtype.value=keepS;}
+  candCache=hits.slice(0,3);candKey=hits.length?key:'';return candCache;
+ }
+ /* ---------- 칸 채우기(빈 칸만) ---------- */
+ function tag(el,force){if(!el)return;const l=el.closest('label');if(!l||l.querySelector(':scope>.v193-tag'))return;const t=document.createElement('span');t.className='v193-tag';t.textContent='대장';const tn=[...l.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(tn)tn.after(t);else l.prepend(t);if(force)filled.push([el,el.value]);}
+ function put(el,v,isArea){if(!el)return;const blank=el.value===''||(el.value==='0'&&(el.defaultValue==='0'||el.getAttribute('value')==='0'||el.placeholder==='0'));if(!blank)return;const has=v!==''&&v!=null&&!isNaN(Number(v));if(!has)return;el.value=String(isArea?r2(v):Number(v));fire(el);tag(el);filled.push([el,el.value]);}
+ function putSel(el,v){if(!el||!v||el.value)return;if(![...el.options].some(o=>o.value===v))return;el.value=v;fire(el);tag(el);filled.push([el,el.value]);}
+ function fillMode(m){
+  if(!item)return;const u=window.V85MatchUse?window.V85MatchUse(item.mainPurpsCdNm):null;
+  if(m==='new'||m==='full'){putSel($('use'),u&&u.v);put($('area'),item.totArea,1);put($('ground'),item.grndFlrCnt);put($('basement'),item.ugrndFlrCnt);if(m==='full')put($('oldArea'),item.totArea,1);}
+  else if(m==='quick'){const q=$('v132-quick');if(!q)return;const g=k=>q.querySelector('[data-q='+k+']');putSel(g('use'),u&&u.v);put(g('area'),item.totArea,1);put(g('ground'),item.grndFlrCnt);put(g('basement'),item.ugrndFlrCnt);}
+  else if(m==='change'){document.querySelectorAll('#change-rows [data-k=before]').forEach(sel=>putSel(sel,u&&u.v));
+   let ref=$('v142-ref');if(!ref){ref=document.createElement('p');ref.id='v142-ref';const f=$('change-form');f&&f.before(ref);}
+   if(ref){ref.textContent='기존 건물(건축물대장): 연면적 '+(Number(item.totArea)?r2(item.totArea)+'㎡':'미기재')+' · 지상 '+(item.grndFlrCnt||'?')+'층 / 지하 '+(item.ugrndFlrCnt||0)+'층 · 주용도 '+(item.mainPurpsCdNm||'미기재');ref.hidden=false;}}
+  else if(m==='era'){const f=$('history-catalog-form');if(f&&!f.closest('[hidden]')){put(f.elements.area,item.totArea,1);put(f.elements.ground,item.grndFlrCnt);put(f.elements.basement,item.ugrndFlrCnt);}}
+  window.V195Last={mode:m,els:filled.filter(([el])=>el.isConnected),src:m==='era'?(pms()||{}).l||'':''};
+ }
+ function manual(){
+  for(const [el,v] of filled){if(!el.isConnected||el.value!==v)continue;el.value=el.tagName==='SELECT'?'':(el.defaultValue||'');fire(el);}
+  // 대장 칸에서 처음 채운(apply) 상세 칸도 함께 비움
+  document.querySelectorAll('.v193-tag').forEach(t=>t.remove());
+  filled=[];item=null;window.V195Last=null;
+  const ref=$('v142-ref');if(ref){ref.textContent='';ref.hidden=true;}
+  document.dispatchEvent(new CustomEvent('v195-clear'));
+  ['v157-reg','v194-new','v194-quick','v147-pick'].forEach(id=>{const x=$(id);if(x)x.hidden=true;});
+  render();dateNote();
+  const r=$('v85-reg');if(r)r.open=false;
+ }
+ function onApplied(e){
+  item=(e.detail&&e.detail.it)||null;filled=[];candKey='';
+  const reg=$('v85-reg');
+  setTimeout(()=>{ // V85·V142·V193 채움 뒤
+   // apply()가 상세 칸을 덮어쓴 경우도 「대장」 값으로 기록
+   if(['new','full'].includes(modeNow())||true){['use','area','ground','basement'].forEach(id=>{const el=$(id);if(el&&el.value!==''){tag(el);filled.push([el,el.value]);}});}
+   const q=$('v132-quick');if(q&&modeNow()==='quick')['use','area','ground','basement'].forEach(k=>{const el=q.querySelector('[data-q='+k+']');if(el&&el.value!==''){tag(el);filled.push([el,el.value]);}});
+   if(modeNow()==='change')document.querySelectorAll('#change-rows [data-k=before]').forEach(el=>{if(el.value){tag(el);filled.push([el,el.value]);}});
+   fillMode(modeNow());render();dateNote();
+   if(reg)reg.open=false;
+   const box=$('v195-bldg');if(box)box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },120);
+ }
+ /* 사용자가 고치면 「대장」 표시 제거 · 결과 머리줄 출처 표시 */
+ document.addEventListener('input',e=>{if(!e.isTrusted)return;const l=e.target.closest&&e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
+ document.addEventListener('change',e=>{if(!e.isTrusted||e.target.tagName!=='SELECT')return;const l=e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
+ new MutationObserver(()=>{const L=window.V195Last;if(!L||!item)return;document.querySelectorAll('.ur-head').forEach(h=>{if(h.querySelector('.v193-src-chip'))return;const inEra=!!h.closest('#history-catalog-results');const els=filled.filter(([el])=>el.isConnected&&(inEra?!!el.closest('#history-catalog-form'):!el.closest('#history-catalog-form')));if(!els.length||!els.every(([el,v])=>el.value===v))return;const c=document.createElement('span');c.className='v193-src-chip';c.textContent='건축물대장 기준';h.append(c);});}).observe(document.body,{childList:true,subtree:true});
+ function start(){
+  if(!build()){setTimeout(start,200);return;}
+  syncTabs();render();dateNote();
+  document.addEventListener('v85-applied',onApplied);
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type'))setTimeout(()=>{fillMode(modeNow());render();},120);},true);
+  document.addEventListener('change',e=>{if(e.target&&e.target.id==='law-date')setTimeout(()=>{syncTabs();dateNote();fillMode('era');render();},450);},true);
+  new MutationObserver(()=>setTimeout(syncTabs,0)).observe(document.body,{attributes:true,attributeFilter:['class']});
+  const hr=$('historical-review');if(hr)new MutationObserver(()=>setTimeout(()=>{syncTabs();render();},0)).observe(hr,{attributes:true,attributeFilter:['hidden']});
+  const hc=$('history-catalog');if(hc)new MutationObserver(()=>setTimeout(()=>{if(isEra()){fillMode('era');render();}},50)).observe(hc,{attributes:true,attributeFilter:['hidden']});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,80));else setTimeout(start,80);
 })();
 </script>
 </body></html>
