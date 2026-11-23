@@ -4171,8 +4171,15 @@ function render(target,rows,mode){
  try{const cs=target.querySelector('.construction-status');if(cs&&!zone.length){
   const R=window.ActiveConstructionCriteria||{start:[]};const rv=[...new Set(rows.filter(r=>r.status==='review'&&(R.start||[]).includes(r.id)).map(r=>r.name))];
   const hl=cs.querySelector('.construction-headline'),br=cs.querySelector('p.help');
-  if(cond.length){hl.textContent='착공신고는 조건에 따라 달라집니다 — 아래 공사 판단의 조건부 시설('+cond.map(x=>x.name).join(', ')+')을 확인하세요.';cs.dataset.start='review';}
-  else{hl.textContent='비착공, 비감리 대상입니다.';cs.dataset.start='no';cs.dataset.supervision='no';}
+  if(cond.length){hl.textContent='착공·감리 여부는 조건에 따라 달라집니다.';cs.dataset.start='review';
+   const ZN={spr:'방호구역',simple:'방호구역',mist:'방호구역',auto:'경계구역',market:'경계구역',smoke:'제연구역',connection:'송수구역',spray:'살수구역',socket:'전용회로',hydrant:'소화전',outdoor:'소화전'};
+   let cx=cs.querySelector('.v178-cond');if(!cx){cx=document.createElement('p');cx.className='help v178-cond';hl.after(cx);}
+   const show=cond.slice(0,3),more=cond.length>3?' 등 '+cond.length+'개':'';
+   if(/^용도/.test(mode)){const parts=show.map(x=>(show.length>1?x.name+'는 ':'')+(ZN[x.id]?(ZN[x.id]==='소화전'?'소화전(방수구)이 추가될 때':ZN[x.id]+'이 새로 생길 때'):'구역이 새로 생길 때'));
+    cx.textContent=show.map(x=>x.name).join('·')+more+'가 건물에 없으면 신설(착공 대상)입니다. 이미 있으면 '+parts.join(', ')+' 착공 대상입니다.';}
+   else cx.textContent=show.map(x=>x.name).join('·')+more+'는 아래 표 「판단 이유」의 조건에 따라 착공 대상 여부가 결정됩니다.';
+  }
+  else{const oc=cs.querySelector('.v178-cond');if(oc)oc.remove();hl.textContent='비착공, 비감리 대상입니다.';cs.dataset.start='no';cs.dataset.supervision='no';}
   if(br)br.textContent='아래 공사 판단 표를 기준으로 한 결론입니다. 착공은 소방시설공사 착공신고를 뜻합니다. 실제 설치 현황·공사 범위에 따라 달라질 수 있으므로 도면과 현장을 확인하세요.';
   let ex=cs.querySelector('.v176-more');if(rv.length&&!cond.length){if(!ex){ex=document.createElement('p');ex.className='help v176-more';br?br.after(ex):hl.after(ex);}ex.textContent='다만 「추가 확인」 시설 중 착공신고 대상 설비 '+rv.length+'개('+rv.slice(0,3).join(', ')+(rv.length>3?' 등':'')+')가 설치 대상으로 확인되면 착공신고·감리 대상이 될 수 있습니다.';}else if(ex)ex.remove();
   cs.dataset.report=hl.textContent+' '+(br?br.textContent:'')+(ex&&ex.isConnected?' '+ex.textContent:'')+' / 근거: 공사업법 시행령 제4조·제10조제2항';
@@ -4693,7 +4700,7 @@ if(document.readyState==='complete')go();else window.addEventListener('load',go)
 .v175-note{display:block;font-size:12px;color:#ffcf8a;margin-top:2px;line-height:1.4}
 @media print{.v175-sec{background:#fff;border:1px solid #888;border-left-width:5px}.v175-sec b,.v175-sec span{color:#000}.v175-note{color:#000}}
 </style>
-<style>.v176-more{color:#ffcf8a!important}</style>
+<style>.v176-more{color:#ffcf8a!important}.v178-cond{color:#ffcf8a!important;font-size:14.5px!important;line-height:1.7}</style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
 const out=()=>document.getElementById('change-output');
