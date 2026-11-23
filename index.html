@@ -4172,7 +4172,7 @@ function render(target,rows,mode){
   const R=window.ActiveConstructionCriteria||{start:[]};const rv=[...new Set(rows.filter(r=>r.status==='review'&&(R.start||[]).includes(r.id)).map(r=>r.name))];
   const hl=cs.querySelector('.construction-headline'),br=cs.querySelector('p.help');
   if(cond.length){hl.textContent='착공신고는 조건에 따라 달라집니다 — 아래 공사 판단의 조건부 시설('+cond.map(x=>x.name).join(', ')+')을 확인하세요.';cs.dataset.start='review';}
-  else{hl.textContent=rv.length?'현재 기준 해당 시설로는 착공·감리 비대상입니다.':'착공·감리 비대상입니다.';cs.dataset.start='no';cs.dataset.supervision='no';}
+  else{hl.textContent='비착공, 비감리 대상입니다.';cs.dataset.start='no';cs.dataset.supervision='no';}
   if(br)br.textContent='아래 공사 판단 표를 기준으로 한 결론입니다. 착공은 소방시설공사 착공신고를 뜻합니다. 실제 설치 현황·공사 범위에 따라 달라질 수 있으므로 도면과 현장을 확인하세요.';
   let ex=cs.querySelector('.v176-more');if(rv.length&&!cond.length){if(!ex){ex=document.createElement('p');ex.className='help v176-more';br?br.after(ex):hl.after(ex);}ex.textContent='다만 「추가 확인」 시설 중 착공신고 대상 설비 '+rv.length+'개('+rv.slice(0,3).join(', ')+(rv.length>3?' 등':'')+')가 설치 대상으로 확인되면 착공신고·감리 대상이 될 수 있습니다.';}else if(ex)ex.remove();
   cs.dataset.report=hl.textContent+' '+(br?br.textContent:'')+(ex&&ex.isConnected?' '+ex.textContent:'')+' / 근거: 공사업법 시행령 제4조·제10조제2항';
