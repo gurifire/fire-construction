@@ -1429,7 +1429,7 @@ function mount(){
  function v181HistoryRender(output,ex,head,sub,basis,note){
   const rows=ex.rows,rel=new Set(ex.relief.map(r=>r[0])),fmt=n=>Number(n).toLocaleString('ko-KR');
   const html=window.URender({head,sub,band:{kind:'era',title:'그 당시 기준 — '+basis,text:'당시 면제·대체 조항을 함께 적용했습니다.'},
-   yes:rows.filter(r=>r[1]==='yes').map(r=>({name:r[0],chips:[{t:window.URshortRef(r[2]),k:'ref'}],line2:/ — /.test(r[2])?r[2].split(' — ').slice(-1)[0]:'',why:[r[2]]})),
+   yes:rows.filter(r=>r[1]==='yes').map(r=>({name:r[0],chips:[{t:window.URshortRef(r[2]),k:'ref'}],why:[r[2]]})),
    review:rows.filter(r=>r[1]==='review').map(r=>({name:r[0],reason:r[2]})),
    no:rows.filter(r=>r[1]==='no'&&!rel.has(r[0])).map(r=>({name:r[0],reason:r[2]})),
    subs:ex.subs,relief:ex.relief.map(r=>({name:r[0],text:'→ 내화구조·불연 마감 완화 '+r.relief.m+'배 적용',small:'원래 연면적 '+fmt(r.relief.a)+'㎡ 이상이면 대상이지만, 주요구조부 내화구조·실내 불연 마감이면 '+fmt(r.relief.a*r.relief.m)+'㎡ 이상만 대상 ('+(ex.prefix||'소방법시행령')+' '+r.relief.r+')'})),
@@ -3489,7 +3489,7 @@ body.v132-q #form,body.v132-q #change-module,body.v132-q #result{display:none!im
   const ver=(window.FireRuleRuntime&&window.FireRuleRuntime.active&&window.FireRuleRuntime.active.label)||'최신 기준';
   /* V182: 공통 틀 */
   const nm=rows.filter(r=>r.status==='notmet'||r.status==='excluded');
-  const cardOf=r=>{const sc=BLDG.has(r.id)&&!r.chipSet?BLDG_CHIP[r.id]:chip(r.scope);return {name:r.name,chips:[sc?{t:sc}:null],line2:String(r.reason||'').split(' / ')[0].replace(/^[^:]{1,20}:\s*/,'').replace(/\s*\(세부 구분 공통 기준\)/,''),why:[r.reason,r.ref?String(r.ref):'']};};
+  const cardOf=r=>{const sc=BLDG.has(r.id)&&!r.chipSet?BLDG_CHIP[r.id]:chip(r.scope);return {name:r.name,chips:[sc?{t:sc}:null],why:[r.reason,r.ref?String(r.ref):'']};};
   const yesAll=here.concat(bldg);
   const useTxt=usesHere.length?usesHere.map(r=>useLabel(r.use,r.sub)+(r.floors!=='all'&&F==null?' ('+(r.floors.length>1?fl(r.floors[r.floors.length-1])+'~'+fl(r.floors[0]):fl(r.floors[0]))+')':'')).join(' · '):'입력한 용도 없음';
   let cond=[];
@@ -5037,6 +5037,12 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 .ur .ur-grp small{min-width:0}
 
 .ur .ur-grp small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+
+/* V191: 2줄 설치범위 */
+.ur .ur-l2 .ur-k{color:#8fa6c2}
+.ur .ur-l2 .ur-v{color:#e6eef8}
+.ur .ur-l2 .ur-dot{color:#5f7390;margin:0 6px}
+.ur .ur-l2{font-size:12.5px}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5066,9 +5072,11 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const chip=c=>'<span class="ur-chip'+(c.k?' ur-'+c.k:'')+'">'+esc(c.t)+'</span>';
  function card(y,ex){
-  const chips=(y.chips||[]).filter(c=>c&&c.t).map(chip).join('');
-  const l2=y.line2||ex?'<span class="ur-l2">'+(y.line2?esc(y.line2):'')+(ex?'<em class="ur-exm">면제 가능</em>':'')+'</span>':'';
-  const head='<span class="ur-l1"><b>'+esc(y.name)+'</b><span class="ur-chips">'+chips+'</span></span>'+l2;
+  /* V191: 오른쪽 칩 대신 2줄 글씨 — 조치 · 설치범위(또는 근거) */
+  const parts=[];if(y.line2)parts.push('<span class="ur-v">'+esc(y.line2)+'</span>');
+  for(const c of (y.chips||[]).filter(c=>c&&c.t))parts.push('<span class="ur-k">'+(c.k==='ref'?'근거':'설치범위')+'</span> <span class="ur-v">'+esc(c.t)+'</span>');
+  const l2=parts.length||ex?'<span class="ur-l2">'+parts.join('<span class="ur-dot">·</span>')+(ex?'<em class="ur-exm">면제 가능</em>':'')+'</span>':'';
+  const head='<span class="ur-l1"><b>'+esc(y.name)+'</b></span>'+l2;
   const cls='ur-it ur-L-'+(y.group||'yes');
   const why=(y.why||[]).filter(Boolean);
   if(!why.length)return '<div class="'+cls+' ur-plain"><div class="ur-sum">'+head+'</div></div>';
@@ -5079,7 +5087,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   const c=y=>card(y,exset.has(y.name));
   if(!yes.some(y=>y.group))return '<div class="ur-list">'+yes.map(c).join('')+'</div>';
   let h='';for(const k of ['new','cond','act']){const g=yes.filter(y=>y.group===k);if(!g.length)continue;
-   h+='<div class="ur-grp"><span class="ur-tag ur-tag-'+k+'">'+GN[k][0]+'</span>'+g.length+'개<small>'+GN[k][1]+'</small>'+(cap&&!h?'<span class="ur-cap">'+esc(cap)+'</span>':'')+'</div><div class="ur-list">'+g.map(c).join('')+'</div>';}
+   h+='<div class="ur-grp"><span class="ur-tag ur-tag-'+k+'">'+GN[k][0]+'</span>'+g.length+'개<small>'+GN[k][1]+'</small>'+'</div><div class="ur-list">'+g.map(c).join('')+'</div>';}
   const rest=yes.filter(y=>!y.group);if(rest.length)h+='<div class="ur-list">'+rest.map(c).join('')+'</div>';
   return h;
  }
@@ -5095,7 +5103,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   if(m.band)h+='<div class="ur-band ur-'+m.band.kind+'"><b>'+esc(m.band.title)+'</b>'+(m.band.text?'<span>'+(m.band.html?m.band.text:esc(m.band.text))+'</span>':'')+(m.band.small?'<small>'+esc(m.band.small)+'</small>':'')+'</div>';
   if(m.top)h+=m.top;
   h+='<div class="ur-tiles"><a class="ur-tile ur-t-yes" data-ur-go="yes"><b>'+yes.length+'<small>개</small></b><span>설치 대상</span></a><a class="ur-tile ur-t-chk" data-ur-go="chk"><b>'+(m.reviewCount!=null?m.reviewCount:review.length)+'<small>개</small></b><span>확인 필요</span></a><a class="ur-tile ur-t-no" data-ur-go="no"><b>'+no.length+'<small>개</small></b><span>해당 없음</span></a></div>';
-  h+='<h4 class="ur-h" data-ur="yes">'+esc(m.yesTitle||'설치 대상')+' <em>'+yes.length+'</em>'+(yes.some(y=>y.group)?'':m.captionHtml?'<span class="ur-cap">'+m.captionHtml+'</span>':m.chipCaption?'<span class="ur-cap">'+esc(m.chipCaption)+'</span>':'')+'</h4>';
+  h+='<h4 class="ur-h" data-ur="yes">'+esc(m.yesTitle||'설치 대상')+' <em>'+yes.length+'</em>'+''+'</h4>';
   const exset=new Set();for(const c of (m.cond||[]))if(c.have&&c.have.length)c.name.split(' · ').forEach(n=>exset.add(n));
   h+=yes.length?cards(yes,exset,m.chipCaption):'<p class="ur-empty">'+esc(m.emptyText||'입력값으로 설치 대상이 확인된 시설이 없습니다.')+'</p>';
   if(m.afterYes)h+=m.afterYes;
