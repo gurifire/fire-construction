@@ -4234,8 +4234,11 @@ function judgeChange(r,had){
  const base={id:r.id,name:r.name};
  if(had===true){
   const z={auto:'경계구역은 그대로, 용도에 맞게 감지기 종류(열·연기)·위치만 조정',market:'경계구역은 그대로, 감지기 조정',spr:'방호구역은 그대로, 헤드 추가·교체(방호구역 신설 시 증설)',simple:'방호구역은 그대로, 헤드 추가·교체',hydrant:'기존 방수구 범위 유지',broadcast:'기존 확성기 범위 확인',alarm:'기존 음향장치 범위 확인'}[r.id];
-  if(['spr','simple','mist'].includes(r.id))return {...base,k:'cond',act:'헤드 조정',start:'조건부 (제2호나목)',why:'변경 전 용도에서도 설치 대상 → '+z+'. 유수검지장치·방호구역이 새로 생기면 증설'};
-  return {...base,k:'dev',act:'기존 설비 조정',start:'비대상',why:'변경 전 용도에서도 설치 대상이라 기존 설비가 있는 것으로 봄 → '+(z||'용도에 맞게 기기만 조정')};
+  /* V187: 현행 기준으로 '변경 전에도 대상'이어도 오래된 건물은 설비가 없을 수 있음 → 착공 대상 설비는 조건부, 그 밖에는 확인 후 필요 시 조정 */
+  const OLD='오래된 건물은 사용승인 당시 설치 의무가 없어 설비가 없을 수 있으니 자체점검 보고서 등으로 확인하세요.';
+  if(['spr','simple','mist'].includes(r.id))return {...base,k:'cond',act:'기존 설비 확인',start:'조건부 (제1호·제2호)',why:'변경 전 용도도 현행 기준상 설치 대상 → 기존 설비가 있으면 '+z+'(유수검지장치·방호구역이 새로 생기면 증설), 없으면 신설(착공). '+OLD};
+  if(LIST1.includes(r.id))return {...base,k:'cond',act:'기존 설비 확인',start:'조건부 (제1호·제2호)',why:'변경 전 용도도 현행 기준상 설치 대상 → 기존 설비가 있으면 '+(z||'필요한 경우 기기 조정')+', 없으면 신설(착공). '+OLD};
+  return {...base,k:'dev',act:'기존 설비 확인 후 필요 시 조정',start:'비대상',why:'변경 전 용도도 설치 대상 → 기존 설비를 확인하고, 변경 용도에 맞지 않으면 '+(z||'기기를 조정')+'. 없으면 변경 구역에 설치 (착공신고 대상 설비 아님)'};
  }
  if(LIST1.includes(r.id)){
   const how={auto:'건물에 자탐이 없으면 신설(제1호), 다른 층에 있고 이 구역만 없으면 경계구역 증설(제2호나목), 이미 감지기가 있으면 종류만 변경',market:'자탐과 같음',spr:'건물에 없으면 신설(제1호), 있으면 방호구역 증설(제2호나목) 또는 헤드 추가',simple:'건물에 없으면 신설, 있으면 방호구역 증설',hydrant:'건물에 없으면 신설(제1호), 있으면 방수구 범위 밖일 때 증설(제2호가목)',broadcast:'건물에 없으면 신설(제1호), 있으면 확성기 추가(비착공)',alarm:'건물에 없으면 신설(제1호), 있으면 음향장치 추가(비착공)',smoke:'제연구역 신설·증설 확인'}[r.id]||'건물에 없으면 신설(제1호), 있으면 구역 증설(제2호) 여부 확인';
@@ -4316,7 +4319,7 @@ function render(target,rows,mode){
   const hasAuto=yes.some(r=>r.id==='auto');items=yes.map(r=>r.id==='alarm'&&hasAuto?{id:r.id,name:r.name,k:'dev',act:'자동화재탐지설비로 대체',start:'비대상',why:'자동화재탐지설비를 설치하면 비상경보설비 설치 면제(시행령 별표 5) — 별도 설치 불요'}:judgeNew(r));title='신축 공사 판단';help='신축은 기준에 해당하는 설비를 모두 새로 설치합니다. 착공신고 대상 설비(제4조 제1호)와 그 밖의 시설을 나눴습니다.';
  }else if(/^용도/.test(mode)){
   const pre=changePre();items=yes.map(r=>judgeChange(r,pre?pre.has(r.id):null));title='용도변경 공사 판단';
-  help='용도변경은 면적이 늘지 않으므로, 변경 전 용도에서도 설치 대상이었던 설비는 기존 설비를 조정하는 것으로 봅니다. 새로 대상이 된 설비는 건물에 이미 있는지에 따라 신설(제1호) 또는 구역 증설(제2호)이 됩니다. 변경 전 용도를 입력해야 구분됩니다.';
+  help='용도변경은 면적이 늘지 않지만, 기존 설비가 실제로 있는지는 건물마다 다릅니다(오래된 건물은 당시 설치 의무가 없었을 수 있음). 착공신고 대상 설비는 기존 설비가 있으면 조정·구역 증설, 없으면 신설(제1호)이 되므로 조건부로 표시합니다. 그 밖의 시설은 기존 설비를 확인한 뒤 필요한 경우 조정합니다.';
  }else return;
  const zone=items.filter(x=>x.k==='zone'||x.k==='new'),cond=items.filter(x=>x.k==='cond');
  const box=document.createElement('section');box.className='v154-work';
@@ -5022,6 +5025,11 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 .ur .ur-tag-new{background:#ff9a6b;color:#2a1208}.ur .ur-tag-cond{background:#ffdd8a;color:#2a2108}.ur .ur-tag-act{background:#7d8ea8;color:#0c1d35}
 .ur .ur-subs{border-left-width:4px!important}
 @media(max-width:640px){.ur .ur-l1{flex-wrap:nowrap}.ur .ur-chips{flex-wrap:nowrap}}
+
+.ur-exist{margin-top:10px;padding:10px 12px;border-radius:10px;background:#0b1c33;border:1px dashed #4a6a92;font-size:12.5px;color:#cfe0f5;line-height:1.6}
+.ur-exist b{display:block;color:#ffdd8a;margin-bottom:2px}
+.ur-exist ul{margin:2px 0 0;padding-left:18px}.ur-exist li{margin:0;background:none!important;border:0!important;padding:0!important}
+.ur-exist button{margin-top:6px;font-size:12px;padding:5px 10px;border-radius:7px;background:#1c3a63;color:#dfe9f6;border:1px solid #3a5f92;cursor:pointer}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5162,6 +5170,11 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   if(v89&&fb){const c=document.createElement('div');c.className='ur-v89';c.innerHTML='<p class="ur-sub-h">입력하거나 확인하면 설치 대상이 바뀔 수 있는 조건입니다.</p>';const g=v89.querySelector('.v170-groups');if(g)c.append(g.cloneNode(true));const etc=v89.querySelector('.v89-etc');if(etc){const useTxt=head.split('→').pop();const REL=[[/영화관|공연장|무대/,/문화|집회|근린|종교|운동|관광|복합/],[/유흥/,/위락|근린|복합/],[/대규모점포|지하역사|지하상가/,/판매|운수|지하가|복합/],[/관광호텔/,/숙박|관광|복합/],[/병원/,/의료|복합/],[/전통시장/,/판매|시장|복합/],[/지하구|공동구|터널/,/지하구|공동구|터널/]];
     const groups=T(etc).replace(/^그 밖에:\s*/,'').split(' / ').map(g=>g.split('·').filter(w=>REL.some(([a,b])=>a.test(w)&&b.test(useTxt))).join('·')).filter(Boolean);
     if(groups.length){const e=etc.cloneNode(false);e.textContent='그 밖에: '+groups.join(' / ');c.append(e);}}fb.prepend(c);}
+  if(isChange){const ex=document.createElement('div');ex.className='ur-exist';
+   ex.innerHTML='<b>기존 설비 확인 방법</b><ul><li>최근 자체점검(작동·종합) 실시결과 보고서의 소방시설 현황</li><li>소방시설 완공검사증명서·준공도면, 소방시설 관리대장</li><li>오래된 건물은 사용승인 당시 설치 의무가 없어 설비가 없을 수 있습니다.</li></ul><button type="button" class="ur-goera">사용승인 당시 기준 보기 (날짜 검색) →</button>';
+   const yl=box.querySelector('.ur-list:last-of-type')||box.querySelector('.ur-h');const after=box.querySelector('div.ur-box.ur-subs,div.ur-box.ur-relief,details.ur-box.ur-cond,details.ur-f-chk');if(after)after.before(ex);else box.querySelector('.ur').append(ex);
+   ex.querySelector('.ur-goera').onclick=()=>{const v=document.getElementById('law-version');if(v){const o=[...v.options].find(x=>x.value==='date');if(o){v.value='date';v.dispatchEvent(new Event('change',{bubbles:true}));}}
+    const d=document.getElementById('law-date');(d||v||document.body).scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{try{d&&d.focus();}catch(e){}},400);};}
   box.querySelectorAll('details').forEach(d=>d.dataset.v89='1');
   const anchor=root.querySelector(':scope>.print-meta');if(anchor)anchor.after(box);else root.prepend(box);
   root.classList.add('ur-on');
