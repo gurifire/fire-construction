@@ -5067,6 +5067,24 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 .ur-head .v193-src-chip{display:inline-block;margin-top:5px;font-size:11px;padding:1px 7px;border-radius:4px;background:#12302a;color:#7fe0b4;border:1px solid #2f6f5a}
 .v193-picked .v193-cand button.on{background:#2a63ad;border-color:#cfe2fb}
 label:has(>.v193-tag){position:relative}
+/* V194: 층별 불러오기 상자 (신축·빠른) */
+.v194-box{margin:12px 0;padding:12px 14px;border-radius:12px;background:#0f2441;border:1px solid #2f5687;display:grid;gap:8px}
+.v194-box h4{margin:0;font-size:14.5px;color:#fff}
+.v194-box .v194-help{margin:0;font-size:12.5px;color:#9fb3cc;line-height:1.5}
+#workspace .v194-box button.v194-load,.v194-box button.v194-load{justify-self:start;min-height:44px;padding:0 16px;border-radius:9px;font-weight:700;background:#1a3a63!important;color:#cfe2ff!important;border:1px solid #2f5687!important}
+#workspace .v194-box button.v194-go,.v194-box button.v194-go{justify-self:start;min-height:44px;padding:0 16px;border-radius:9px;font-weight:700;background:#ff7a45!important;color:#fff!important;border:0!important}
+.v194-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.v194-list li{background:none!important;border:0!important;padding:0!important}
+.v194-list label{display:flex!important;gap:8px;align-items:flex-start;font-size:13.5px;color:#eef3fa}
+.v194-list input{min-height:0!important;width:18px;height:18px;margin-top:2px}
+.v194-list small{display:block;color:#8fa6c2;font-size:11.5px}
+.v194-chips{display:flex;flex-wrap:wrap;gap:6px}
+.v194-chips button{min-height:0!important;padding:6px 10px;border-radius:9px;border:1px solid #2f5687;background:#13284a;color:#dfe9f6;font-size:12.5px;text-align:left;line-height:1.35}
+.v194-chips button small{display:block;color:#8fa6c2;font-size:11px}
+.v194-chips button.on{border-color:#ff9a6b;background:#3a1d12}
+.v194-msg{margin:0;font-size:12.5px;color:#ffbf99;min-height:1em}.v194-msg.ok{color:#9fd8b4}
+/* V194: 개인 인증키 사용 숨김 (소방서 중간 서버 키 사용) */
+#v85-reg .v91-own-key,#v85-reg .v85-key,#v85-reg #v85-key-state,#v85-reg #v98-keynote{display:none!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5255,6 +5273,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   if(m==='date'){const f=$('history-catalog-form');if(f){const grid=f.querySelector('.grid')||f.firstElementChild;if(reg.parentNode!==f){back={p:reg.parentNode,n:reg.nextSibling};grid.before(reg);}}
    const help=reg.querySelector('.v85-help');if(help)help.textContent='건축물대장을 찾아 검색 기준일(허가일 → 착공일 → 사용승인일 순)과 연면적·층수 칸을 채웁니다. 당시 용도는 후보를 보고 직접 고르세요.';}
   else if(back&&reg.parentNode===$('history-catalog-form')){try{back.p.insertBefore(reg,back.n&&back.n.parentNode===back.p?back.n:null);}catch(e){}back=null;}
+  if(m==='quick'){const help=reg.querySelector('.v85-help');const t='건축물대장을 찾아 아래 연면적·층수·주용도 칸을 채웁니다. 「특정 층 검색」은 아래 「대장 층별 정보로 층 채우기」로 층·바닥면적·층 용도를 채울 수 있습니다.';if(help&&help.textContent!==t)help.textContent=t;}
   if(m!==curMode){curMode=m;clearMarks();}
   bar();
  }
@@ -5327,6 +5346,87 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   new MutationObserver(()=>setTimeout(()=>{if(modeNow()!==curMode)place();else bar();},0)).observe(document.body,{attributes:true,attributeFilter:['class']});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,50));else setTimeout(start,50);
+})();
+</script>
+<script id="v194-floors">/* V194: 층별 불러오기 보완 — 신축 「층별 바닥면적」, 빠른검색 「특정 층」에 대장 층별개요 불러오기 추가 (증축 V157·용도변경 V147은 기존 기능 유지) */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
+ const r2=n=>Math.round(n*100)/100;
+ const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const typeNow=()=>{const r=document.querySelector('label.project-type input:checked');return r?r.value:'신축';};
+ const isQuick=()=>document.body.classList.contains('v132-q');
+ let item=null,sums=null;
+ const isRoof=r=>/옥탑/.test(r.flrGbCdNm||'')||String(r.flrGbCd)==='30';
+ const flKey=r=>{const n=num(r.flrNo);if(isRoof(r))return 'R'+Math.abs(n||1);const under=/지하/.test(r.flrGbCdNm||'')||String(r.flrGbCd)==='10';return under?-Math.abs(n):n;};
+ const flName=f=>typeof f==='string'?'옥탑 '+f.slice(1)+'층':f<0?'지하 '+(-f)+'층':f+'층';
+ async function fetchSums(){
+  if(sums)return sums;
+  if(!item||!window.V147Get)return {error:'먼저 위 「건축물대장에서 불러오기」로 건물을 고르세요.'};
+  const res=await window.V147Get('floor',item);
+  if(res.error)return {error:'층별 정보를 불러오지 못했습니다: '+res.error+'. 직접 입력하세요.'};
+  const same=r=>!item.dongNm||!r.dongNm||String(r.dongNm).trim()===String(item.dongNm).trim();
+  const m=new Map();
+  for(const r of (res.items||[]).filter(same)){const f=flKey(r);if(!f)continue;const ex=/연면적\s*제외/.test((r.etcPurps||'')+(r.mainPurpsCdNm||''));
+   if(!m.has(f))m.set(f,{f,area:0,ex:0,uses:new Map()});const g=m.get(f);
+   if(ex)g.ex+=num(r.area);else{g.area+=num(r.area);const u=String(r.mainPurpsCdNm||'');g.uses.set(u,(g.uses.get(u)||0)+num(r.area));g.etc=(g.etc||[]);if(r.etcPurps)g.etc.push(r.etcPurps);}}
+  const list=[...m.values()].sort((a,b)=>{const k=x=>typeof x.f==='string'?100000+Number(x.f.slice(1)):x.f;return k(b)-k(a);});
+  if(!list.length)return {error:'이 건물의 층별 정보가 대장에 없습니다. 직접 입력하세요.'};
+  sums=list;return list;
+ }
+ const mainUse=g=>{let best='',v=-1;for(const [u,a] of g.uses)if(a>v){v=a;best=u;}return best;};
+ /* ---- 신축: 층별 바닥면적 채우기 ---- */
+ function newBox(){
+  let b=$('v194-new');if(b)return b;
+  b=document.createElement('section');b.id='v194-new';b.className='v194-box';b.hidden=true;
+  b.innerHTML='<h4>대장 층별 면적으로 「층별 바닥면적」 채우기</h4><p class="v194-help">선택한 건물 대장의 층별개요에서 층마다 면적을 합산해 넣습니다. 연면적 제외(PIT 등)는 빼고, 옥탑은 층별 칸에 넣지 않습니다.</p><button type="button" class="v194-load" id="v194-new-load">층별 면적 불러오기</button><div id="v194-new-body" hidden><ul class="v194-list" id="v194-new-list"></ul><button type="button" class="v194-go" id="v194-new-go">선택한 층 채우기</button></div><p class="v194-msg" id="v194-new-msg" role="status"></p>';
+  const h=$('v158-floors')||document.querySelector('.floor-heading');(h||$('floorRows')).before(b);
+  $('v194-new-load').onclick=async()=>{const bt=$('v194-new-load');bt.disabled=true;bt.textContent='불러오는 중…';const r=await fetchSums();bt.disabled=false;bt.textContent='층별 면적 다시 불러오기';
+   const msg=$('v194-new-msg');if(r.error){msg.textContent=r.error;msg.classList.remove('ok');return;}
+   $('v194-new-list').innerHTML=r.map(g=>'<li><label><input type="checkbox" '+(typeof g.f==='string'?'disabled':'checked')+' data-f="'+g.f+'"><span>'+flName(g.f)+(typeof g.f==='string'?' (층별 칸 제외)':'')+' · '+r2(g.area).toLocaleString('ko-KR')+'㎡<small>'+esc(mainUse(g))+(g.ex?' · 연면적 제외 '+r2(g.ex)+'㎡ 빼고 합산':'')+'</small></span></label></li>').join('');
+   $('v194-new-body').hidden=false;msg.textContent='층별 면적을 불러왔습니다. 채울 층을 고르세요.';msg.classList.add('ok');};
+  $('v194-new-go').onclick=()=>{const msg=$('v194-new-msg');
+   const pick=[...$('v194-new-list').querySelectorAll('input:checked')].map(i=>Number(i.dataset.f)).filter(n=>Number.isFinite(n)&&n!==0);if(!pick.length){msg.textContent='채울 층을 고르세요.';msg.classList.remove('ok');return;}
+   for(const f of pick){const s=sums.find(x=>x.f===f);const rows=[...document.querySelectorAll('#floorRows .floor-row')];
+    let r=rows.find(x=>num(x.querySelector('[data-key=floor]').value)===f&&x.querySelector('[data-key=floor]').value!=='');
+    if(!r)r=rows.find(x=>[...x.querySelectorAll('input[data-key]')].every(i=>i.value===''));
+    if(!r){$('addFloor').click();r=[...document.querySelectorAll('#floorRows .floor-row')].pop();}
+    const fi=r.querySelector('[data-key=floor]'),ai=r.querySelector('[data-key=area]');fi.value=String(f);fire(fi);ai.value=String(r2(s.area));fire(ai);}
+   const fr=$('v158-floors');if(fr&&fr.tagName==='DETAILS')fr.open=true;
+   msg.textContent=pick.length+'개 층의 바닥면적을 채웠습니다. 무창층 여부는 층마다 확인하세요.';msg.classList.add('ok');};
+  return b;
+ }
+ /* ---- 빠른검색: 특정 층 채우기 ---- */
+ function quickBox(){
+  let b=$('v194-quick');if(b)return b;
+  const fa=document.querySelector('#v132-quick [data-q=farea]');if(!fa)return null;
+  b=document.createElement('section');b.id='v194-quick';b.className='v194-box';b.hidden=true;
+  b.innerHTML='<h4>대장 층별 정보로 층 채우기</h4><p class="v194-help">층을 누르면 층·바닥면적·그 층 주용도가 채워집니다.</p><button type="button" class="v194-load" id="v194-q-load">층별 정보 불러오기</button><div class="v194-chips" id="v194-q-list" hidden></div><p class="v194-msg" id="v194-q-msg" role="status"></p>';
+  const grid=fa.closest('.grid')||fa.closest('label').parentElement;grid.after(b);
+  $('v194-q-load').onclick=async()=>{const bt=$('v194-q-load');bt.disabled=true;bt.textContent='불러오는 중…';const r=await fetchSums();bt.disabled=false;bt.textContent='층별 정보 다시 불러오기';
+   const msg=$('v194-q-msg');if(r.error){msg.textContent=r.error;msg.classList.remove('ok');return;}
+   const L=$('v194-q-list');L.innerHTML=r.filter(g=>typeof g.f!=='string').map(g=>'<button type="button" data-f="'+g.f+'"><b>'+flName(g.f)+'</b> '+r2(g.area).toLocaleString('ko-KR')+'㎡<small>'+esc(mainUse(g))+'</small></button>').join('');L.hidden=false;
+   msg.textContent='채울 층을 누르세요.';msg.classList.add('ok');
+   L.querySelectorAll('button').forEach(x=>x.onclick=()=>{const g=sums.find(s=>s.f===Number(x.dataset.f));const q=$('v132-quick');
+    const fl=q.querySelector('[data-q=floor]'),fa=q.querySelector('[data-q=farea]'),fu=q.querySelector('[data-q=fuse]');
+    fl.value=g.f<0?'B'+(-g.f):String(g.f);fire(fl);fa.value=String(r2(g.area));fire(fa);
+    const u=window.V85MatchUse?window.V85MatchUse(mainUse(g)):null;let used='';if(fu&&u&&[...fu.options].some(o=>o.value===u.v)){fu.value=u.v;fire(fu);used=fu.selectedOptions[0].textContent;}
+    L.querySelectorAll('button').forEach(y=>y.classList.toggle('on',y===x));
+    msg.textContent=flName(g.f)+' · '+r2(g.area).toLocaleString('ko-KR')+'㎡'+(used?' · '+used:'')+' — 채웠습니다.'+(used?'':' 층 주용도는 직접 고르세요.');msg.classList.add('ok');});};
+  return b;
+ }
+ function sync(){
+  const nb=newBox();if(nb)nb.hidden=!item||isQuick()||!/^신축/.test(typeNow());
+  const qb=quickBox();if(qb){const fa=document.querySelector('#v132-quick [data-q=farea]');qb.hidden=!item||!isQuick()||!fa||fa.offsetParent===null;}
+ }
+ document.addEventListener('v85-applied',e=>{item=(e.detail&&e.detail.it)||null;sums=null;
+  ['v194-new-body','v194-q-list'].forEach(id=>{const x=$(id);if(x)x.hidden=true;});['v194-new-msg','v194-q-msg'].forEach(id=>{const x=$(id);if(x)x.textContent='';});
+  setTimeout(sync,80);});
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type,.v132-tabs,[data-qm]'))setTimeout(sync,60);},true);
+ new MutationObserver(()=>setTimeout(sync,0)).observe(document.body,{attributes:true,attributeFilter:['class']});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,100));else setTimeout(sync,100);
 })();
 </script>
 </body></html>
