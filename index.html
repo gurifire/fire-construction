@@ -4980,6 +4980,26 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 #v132-qout .ur .ur-why p.ur-sub{margin-top:4px}
 #v132-qout .ur p.ur-note{margin-top:8px}
 #v132-qout .ur .ur-foot{margin-top:12px}
+@media screen{#result.ur-on>:not(.ur-detail):not(.step):not(#resultTitle):not(.print-meta):not(.v169-memo):not(#exportActions):not(#comparison-output){display:none!important}
+#change-output.ur-on>:not(.ur-detail):not(.print-meta):not(.v169-memo){display:none!important}}
+.ur-detail{margin:6px 0 14px}
+.ur-detail .ur p,.ur-detail .ur div{background-color:transparent}
+.ur-detail .ur .ur-why p{color:#cfe0f5!important;margin:0}
+.ur-detail .ur .ur-why p.ur-sub{color:#8fa6c2!important;margin-top:4px}
+.ur-detail .ur p.ur-note{color:#8fa6c2!important}
+.ur-detail .ur-band span a{color:inherit;text-decoration:underline}
+.ur-detail .ur-band .v178-cond,.ur-detail .ur-band p{margin:4px 0 0!important;color:inherit!important;font-size:12.5px}
+.ur-v89{padding:6px 0 8px;border-bottom:1px dashed #2f4a6e;margin-bottom:4px}
+.ur-v89 .ur-sub-h{margin:4px 0 6px!important;font-size:12px!important;color:#ffb48f!important;font-weight:700}
+.ur-v89 details.v170-g{margin:0 0 6px!important}
+.ur-v89 .v89-etc{font-size:11.5px!important;color:#8fa6c2!important;margin:6px 0 0!important}
+@media print{#result.ur-on>.ur-detail,#change-output.ur-on>.ur-detail{display:none!important}}
+.ur .ur-tile b small{display:inline!important;font-size:12px!important;margin:0 0 0 2px!important}
+.ur .ur-tile b{display:block!important}
+.ur .ur-row small{display:block;font-size:11.5px!important;margin:0!important}
+.ur-detail .ur .ur-why{margin:0 10px 9px!important;padding:8px 10px!important}
+.ur-detail .ur .ur-why p{padding:0!important;font-size:12.5px!important}
+.ur-detail .ur .ur-why p.ur-sub{font-size:11.5px!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5043,6 +5063,78 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  };
  document.addEventListener('click',e=>{const t=e.target.closest('[data-ur-go]');if(!t)return;const root=t.closest('.ur');const k=t.dataset.urGo;const anchor=root&&root.querySelector('[data-ur="'+k+'"]');if(!anchor)return;const f=anchor.nextElementSibling;if(f&&f.tagName==='DETAILS')f.open=true;(f||anchor).scrollIntoView({behavior:'smooth',block:'start'});});
  window.URshortRef=function(r){r=String(r||'');const C='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';const head=r.split('—')[0];let m=head.match(/제(\d+)조(?:제(\d+)항)?(?:제(\d+)호)?/);if(m&&!/별표/.test(head))return '§'+m[1]+(m[2]?(C[m[2]-1]||'-'+m[2]):'')+(m[3]?' '+m[3]+'호':'');m=r.match(/별표\s*(\d+)\s*(?:제(\d+)호)?([가-힣]목)?/);if(m)return '별표'+m[1]+(m[2]?' '+m[2]+'호':'')+(m[3]?m[3][0]:'');return '';};
+})();
+</script>
+<script id="v183-detail-ur">/* V183: 상세검색(신축·증축·용도변경) 결과를 공통 틀로 표시 — 기존 판정 DOM을 읽어 카드로 재구성, 기존 표는 인쇄·공문 복사용으로 유지 */
+(function(){
+ const T=e=>e?e.textContent.replace(/\s+/g,' ').trim():'';
+ const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const key=n=>String(n||'').replace(/\s/g,'').replace(/등$/,'');
+ const scopeChip=r=>{const parts=String(r||'').split(' / ').map(x=>x.trim()).filter(x=>x&&!/^적용 위치|기존 부분 포함|조건 입력 구역|^추가 확인$/.test(x));let s=parts[0]||'';
+  const M={'모든 층':'전 층','해당 건축물':'건물 전체','화재안전기준에 따른 장소':'정해진 장소','피난구·통로 등 (배치·면제 별도)':'피난구·통로','해당 변경 구역':'변경 구역','변경 부분에 해당하는 층':'변경 층'};return M[s]||s.replace(/\s*\(.*\)$/,'');};
+ function parse(root){
+  const rows=new Map(),rank={yes:3,review:2,no:1};
+  for(const t of root.querySelectorAll('table')){
+   const head=T(t.querySelector('thead'));if(!/검토 결과/.test(head))continue;
+   for(const tr of t.querySelectorAll('tbody tr')){const td=tr.children;if(td.length<3)continue;
+    const name=T(td[0]),pill=T(td[1]);if(!name)continue;
+    const st=/미해당|제외/.test(pill)?'no':/추가 확인|확인 필요/.test(pill)?'review':/해당/.test(pill)?'yes':null;if(!st)continue;
+    const c=td[2].cloneNode(true);const sm=[...c.querySelectorAll('small')].map(T);c.querySelectorAll('small').forEach(x=>x.remove());
+    const r={name,st,reason:T(c),ref:sm.join(' '),scope:td[3]?T(td[3]):''};
+    const old=rows.get(name);if(!old||rank[st]>rank[old.st])rows.set(name,r);}
+  }
+  const work=new Map();const wt=root.querySelector('.v154-work table');
+  if(wt)for(const tr of wt.querySelectorAll('tbody tr')){const td=tr.children;if(td.length<5)continue;const st=td[3].cloneNode(true);st.querySelectorAll('.v175-note').forEach(x=>x.remove());
+   work.set(T(td[0]),{gu:T(td[1]),act:T(td[2]),start:T(st),why:T(td[4])});}
+  const guide=new Map();for(const sec of root.querySelectorAll('details.facility-guidance section.guidance-item')){const n=T(sec.querySelector('h4'));
+   const ps=[...sec.querySelectorAll('p')].filter(p=>/^설치 시 확인/.test(T(p.querySelector('strong'))));if(ps.length)guide.set(key(n),ps.map(p=>{const c=p.cloneNode(true);c.querySelector('strong')?.remove();return c.innerHTML.replace(/<br>/g,' ');}));}
+  return {rows:[...rows.values()],work,guide};
+ }
+ function build(root,isChange){
+  const st=root.querySelector('.construction-status');const tabs=root.querySelectorAll('table');if(!tabs.length)return;
+  const {rows,work,guide}=parse(root);if(!rows.length)return;
+  const type=(document.querySelector('input[name=type]:checked')||{}).value||'신축';
+  let head,sub;
+  if(isChange){const h3=root.querySelector(':scope>h3');const p=h3&&h3.nextElementSibling&&h3.nextElementSibling.tagName==='P'?T(h3.nextElementSibling):'';head='용도변경 · '+(p.split(' / ').filter(x=>/→/.test(x))[0]||T(h3));sub='변경 구역: '+p.split(' / ').filter(x=>!/→/.test(x)).join(' · ');}
+  else{const s=T(document.getElementById('summary'));const seg=s.split(' · ');head=seg[0]+' · '+type;const meta=T(document.getElementById('print-meta')).split(' · ')[0];sub=(meta?meta+' · ':'')+seg.slice(1).join(' · ');
+   if(type==='증축'){const o=document.getElementById('oldArea')?.value,w=document.getElementById('workArea')?.value,k=document.getElementById('extensionKind');if(o||w)sub+=' · 증축 전 '+(o||'?')+'㎡ · 증축 '+(w||'?')+'㎡';if(k&&k.value)head+=' ('+k.selectedOptions[0].textContent+')';}}
+  let band=null;
+  if(st){const hl=T(st.querySelector('.construction-headline'))||T(st.querySelector('strong'));const parts=[];const sm=T(root.querySelector('.v154-sum'));if(sm)parts.push(esc(sm));
+   const more=st.querySelector('.v176-more');if(more)parts.push(esc(T(more)));const cond=st.querySelector('.v178-cond');if(cond)parts.push(cond.innerHTML);
+   band={kind:/^비착공|비대상/.test(hl)?'off':/조건|경우|확인/.test(hl)?'cond':'on',title:hl,text:parts.join('<br>'),html:true,small:'소방시설공사업법 시행령 제4조(착공신고) · 제10조(감리)'};}
+  const yesR=rows.filter(r=>r.st==='yes');
+  let ex={subs:[],cond:[],rows:[]};
+  try{const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');ex=window.v180Exempt(yesR.map(r=>[r.name,'yes',r.reason]),ds);}catch(e){}
+  const dropped=new Set(ex.subs.map(x=>x.name));
+  for(const r of yesR){const w=work.get(r.name);if(w&&/로 대체$/.test(w.act)&&!dropped.has(r.name)){ex.subs.push({name:r.name,by:w.act.replace(/로 대체$/,''),why:w.why,ref:'시행령 별표 5'});dropped.add(r.name);}}
+  const yes=yesR.filter(r=>!dropped.has(r.name)).map(r=>{const w=work.get(r.name);const chips=[];
+   if(w){const a=w.act.replace(/\s*\(.*$/,'');const start=/착공/.test(w.gu)&&!/비착공/.test(w.gu);chips.push({t:(start?'착공 · ':'')+a,k:start?'new':'act'});}
+   const sc=scopeChip(r.scope);if(sc)chips.push({t:sc});
+   const why=[];if(w&&w.why)why.push('공사 판단: '+w.why+(w.start?' (착공신고 '+w.start+')':''));why.push(r.reason+(r.ref?' · '+r.ref:''));
+   const g=guide.get(key(r.name));if(g)g.forEach(x=>why.push({html:'설치 시 확인: '+x}));
+   return {name:r.name,chips,why};});
+  const html=window.URender({head,sub,band,yes,chipCaption:'조치 · 범위',
+   subs:ex.subs.map(x=>({name:x.name,by:x.by,why:x.why,ref:x.ref})),
+   cond:ex.cond.filter(c=>!dropped.has(c.name)),
+   review:rows.filter(r=>r.st==='review').map(r=>{const ps=[...new Set(r.reason.split(' / ').map(x=>x.trim()).filter(Boolean))];let t=ps.filter(x=>/^필요 자료|^남은 확인/.test(x)).slice(0,2);if(!t.length)t=ps.slice(0,2);t=t.join(' / ');if(t.length>160)t=t.slice(0,158)+'…';return {name:r.name,reason:t};}),
+   no:rows.filter(r=>r.st==='no').map(r=>({name:r.name,reason:r.reason})),
+   note:'시설을 누르면 공사 판단·설치 근거·설치 시 확인사항이 펼쳐집니다. 인쇄·공문용 표 복사는 기존 표 형식으로 나갑니다.'});
+  let box=root.querySelector(':scope>#ur-detail,:scope>.ur-detail');if(box)box.remove();
+  box=document.createElement('div');box.className='ur-detail';if(!isChange)box.id='ur-detail';box.innerHTML=html;
+  const v89=root.querySelector('details.v89-check');const fb=box.querySelector('.ur-f-chk .ur-fold-body');
+  if(v89&&fb){const c=document.createElement('div');c.className='ur-v89';c.innerHTML='<p class="ur-sub-h">담당자가 짚어볼 조건</p>';const g=v89.querySelector('.v170-groups');if(g)c.append(g.cloneNode(true));const etc=v89.querySelector('.v89-etc');if(etc)c.append(etc.cloneNode(true));fb.prepend(c);}
+  box.querySelectorAll('details').forEach(d=>d.dataset.v89='1');
+  const anchor=root.querySelector(':scope>.print-meta');if(anchor)anchor.after(box);else root.prepend(box);
+  root.classList.add('ur-on');
+ }
+ function watch(root,isChange){
+  if(!root)return;let t=null;
+  const mo=new MutationObserver(recs=>{if(recs.every(r=>r.target.closest&&r.target.closest('.ur-detail')||[...r.addedNodes,...r.removedNodes].every(n=>n.nodeType!==1||n.classList&&n.classList.contains('ur-detail'))&&r.type==='childList'))return;
+   clearTimeout(t);t=setTimeout(()=>{try{build(root,isChange);}catch(e){console.warn('V183',e);root.classList.remove('ur-on');}},150);});
+  mo.observe(root,{childList:true,subtree:true,characterData:true});
+ }
+ const go=()=>{watch(document.getElementById('result'),false);watch(document.getElementById('change-output'),true);};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
 </script>
 </body></html>
