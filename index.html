@@ -4242,7 +4242,16 @@ function judgeChange(r,had){
  }
  return {...base,k:'dev',act:'변경 구역에 설치',start:'비대상',why:'착공신고 대상 설비 목록에 없는 시설'};
 }
-function judge(r,d,had,shaft){
+/* V196: 기존 부분이 현행 기준상 대상이어도 오래된 건물은 설비가 없을 수 있음 */
+const OLD_E='오래된 건물은 사용승인 당시 설치 의무가 없어 기존 설비가 없을 수 있으니 자체점검 보고서 등으로 확인하세요.';
+function judge(r,d,had,shaft){const x=judge0(r,d,had,shaft);
+ if(had&&LIST1.includes(r.id)){
+  if(x.k==='zone')return {...x,act:x.act+' (기존 설비 없으면 신설)',why:x.why+' / 기존 부분에 설비가 없으면 증축 부분을 포함해 신설(제1호, 착공). '+OLD_E};
+  if(x.k==='cond')return {...x,why:x.why+' / 기존 부분에 설비가 없으면 신설(제1호, 착공). '+OLD_E};
+  if(x.k==='dev')return {...x,k:'cond',act:x.act+' (기존 설비 없으면 신설)',start:'조건부 (제1호)',why:x.why+' / 기존 부분에 설비가 없으면 신설(제1호, 착공). '+OLD_E};
+ }
+ return x;}
+function judge0(r,d,had,shaft){
  const kind=d.extensionKind,newFloor=kind==='vertical',annex=kind==='detached',big=(d.workArea||0)>600;
  const base={id:r.id,name:r.name};
  if(!had){
@@ -4575,8 +4584,8 @@ function kindUI(){
  if(wrap)wrap.classList.toggle('v158-hidden',unl);
  if(unl){const o=$('extensionException');if(o&&o.value!=='no'){o.value='no';fire(o);fromOrig();}}
  document.body.classList.toggle('v158-detached-unlinked',unl);if(scope){const ph=scope.querySelector(':scope>p.help');if(ph)ph.classList.toggle('v158-hidden',unl);}if(oa&&unl)oa.classList.add('v157-auto');
- const gl=$('ground')&&$('ground').closest('label');if(gl){const t=gl.firstChild;const w=unl?'별동 지상층수':'건축물 지상층수';if(t&&t.nodeType===3&&t.nodeValue!==w)t.nodeValue=w;}
- const bl=$('basement')&&$('basement').closest('label');if(bl){const t=bl.firstChild;const w=unl?'별동 지하층수':'건축물 지하층수';if(t&&t.nodeType===3&&t.nodeValue!==w)t.nodeValue=w;}
+ const gl=$('ground')&&$('ground').closest('label');if(gl){const t=gl.firstChild;const w=unl?'별동 지상층수':ext?'증축 후 지상층수':'건축물 지상층수';if(t&&t.nodeType===3&&t.nodeValue!==w)t.nodeValue=w;}
+ const bl=$('basement')&&$('basement').closest('label');if(bl){const t=bl.firstChild;const w=unl?'별동 지하층수':ext?'증축 후 지하층수':'건축물 지하층수';if(t&&t.nodeType===3&&t.nodeValue!==w)t.nodeValue=w;}
 }
 /* 층별 바닥면적 접기 */
 function fold(){
@@ -5117,6 +5126,15 @@ label:has(>.v193-tag){position:relative}
 @media print{#v195-top{display:none}}
 #historical-review #v195-date button#v195-fill{background:#ff7a45!important;color:#fff!important;border:0!important}
 #v195-top #v195-bldg .v195-acts button{background:#13284a!important;color:#dfe9f6!important;border:1px solid #3a5f92!important}
+/* V196 */
+.v196-note{margin:4px 0 0;font-size:12.5px;color:#7fe0b4}
+.v196-excbox{margin:10px 0;padding:10px 12px;border-radius:10px;background:#12302a;border:1px solid #2f6f5a;display:grid;gap:4px;font-size:12.5px;color:#c9eedc;line-height:1.5}
+.v196-excbox b{color:#fff;font-size:13px}
+.v196-excbox .v196-chk{display:flex!important;align-items:center;gap:8px;font-weight:400;color:#dfe9f6;margin-top:2px}
+.v196-excbox .v196-chk input{min-height:0!important;width:18px;height:18px;margin:0}
+body.v196-exc:not(.v196-showold) #floorRows label:has(.v157-old),body.v196-exc:not(.v196-showold) label:has(#v157-bulkOld){display:none!important}
+body.v196-exc:not(.v196-showold) #v157-reg{display:none!important}
+body.v196-exc:not(.v196-showold) #v156-floor-note{display:none!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5228,7 +5246,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   let head,sub;
   if(isChange){const h3=root.querySelector(':scope>h3');const p=h3&&h3.nextElementSibling&&h3.nextElementSibling.tagName==='P'?T(h3.nextElementSibling):'';head='용도변경 · '+(p.split(' / ').filter(x=>/→/.test(x))[0]||T(h3));sub='변경 구역: '+p.split(' / ').filter(x=>!/→/.test(x)).join(' · ');}
   else{const s=T(document.getElementById('summary'));const seg=s.split(' · ');head=seg[0]+' · '+type;const meta=T(document.getElementById('print-meta')).split(' · ')[0];sub=(meta?meta+' · ':'')+seg.slice(1).join(' · ');
-   if(type==='증축'){const o=document.getElementById('oldArea')?.value,w=document.getElementById('workArea')?.value,k=document.getElementById('extensionKind');if(o||w)sub+=' · 증축 전 '+(o||'?')+'㎡ · 증축 '+(w||'?')+'㎡';if(k&&k.value)head+=' ('+k.selectedOptions[0].textContent+')';}}
+   if(type==='증축'){const o=document.getElementById('oldArea')?.value,w=document.getElementById('workArea')?.value,k=document.getElementById('extensionKind');if(document.body.classList.contains('v158-detached-unlinked')){const pv=(document.getElementById('oldArea')||{dataset:{}}).dataset.v158prev;sub+=' · 별동만 판정 (기존 건물'+(pv&&Number(pv)?' '+Number(pv).toLocaleString('ko-KR')+'㎡':'')+' 제외) · 별동 '+(w||'?')+'㎡';}else if(o||w)sub+=' · 증축 전 '+(o||'?')+'㎡ · 증축 '+(w||'?')+'㎡';if(k&&k.value)head+=' ('+k.selectedOptions[0].textContent+')';}}
   const yesR=rows.filter(r=>r.st==='yes');
   let ex={subs:[],cond:[],rows:[]};
   try{const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');ex=window.v180Exempt(yesR.map(r=>[r.name,'yes',r.reason]),ds);}catch(e){}
@@ -5245,7 +5263,11 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   let band=null;
   if(st){let hl=T(st.querySelector('.construction-headline'))||T(st.querySelector('strong'));
    const drop=[...dropped];const clean=t=>{let x=t;for(const n of drop){x=x.replace(new RegExp('(^|[,·:]\\s*)'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\([^)]*\\))?(?=\\s*[,·—]|\\s*$)','g'),'$1');}return x.replace(/:\s*,\s*/,': ').replace(/,\s*,/g,',').replace(/,\s*(—|$)/,' $1').replace(/··/g,'·').replace(/(^|:\s*)·/,'$1');};
-   const parts=[];const sm=T(root.querySelector('.v154-sum'));if(sm)parts.push(esc(clean(sm)).replace(/착공신고 조건부:\s*—.*$/,''));
+   const parts=[];const sm=T(root.querySelector('.v154-sum'));
+   if(sm){const have=new Set(yes.map(y=>y.name));let t=clean(sm);
+    t=t.replace(/(착공신고[^:]*:|조건부:)\s*([^—\/]+)/g,(all,lab,list)=>{const keep=list.split(/,\s*/).map(x=>x.trim()).filter(x=>x&&have.has(x.replace(/\s*\(.*$/,'')));return keep.length?lab+' '+keep.join(', ')+' ':'';});
+    t=t.replace(/\s*\/\s*(?=\/|$)/g,'').replace(/^\s*\/\s*/,'').replace(/—\s*아래 조건을 확인하세요\.?\s*$/,m=>/조건부/.test(t)?m:'').trim();
+    if(t)parts.push(esc(t));}
    const nC=yes.filter(y=>y.group==='cond').map(y=>y.name),nN=yes.filter(y=>y.group==='new').map(y=>y.name);
    const ZN=[[/스프링클러|물분무|미분무/,'방호구역이 새로 생길 때'],[/자동화재탐지|비상경보|시장/,'경계구역이 새로 생길 때'],[/옥내소화전|옥외소화전/,'소화전(방수구)이 추가될 때'],[/연결살수/,'송수구역이 새로 생길 때'],[/제연/,'제연구역이 새로 생길 때'],[/비상콘센트/,'전용회로가 추가될 때'],[/연결송수관/,'방수구가 추가될 때']];
    const regen=()=>{const per=nC.map(n=>{const z=ZN.find(([r])=>r.test(n));return z?n+'는 '+z[1]:null;}).filter(Boolean);return nC.join('·')+'가 건물에 없으면 신설(착공 대상)입니다.'+(per.length?' 이미 있으면 '+per.join(', ')+' 착공 대상입니다.':' 이미 있으면 기존 설비를 확인해 필요한 경우 조정합니다.');};
@@ -5520,6 +5542,56 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   const hc=$('history-catalog');if(hc)new MutationObserver(()=>setTimeout(()=>{if(isEra()){fillMode('era');render();}},50)).observe(hc,{attributes:true,attributeFilter:['hidden']});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,80));else setTimeout(start,80);
+})();
+</script>
+<script id="v196-ext">/* V196: 증축 입력 보완 — ① 증축하려는 층에 맞춰 증축 후 층수 자동 조정 ⑤ 기존 부분 구획(제15조제1항 단서) 시 증축 층만 입력 */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const isExt=()=>{const r=document.querySelector('label.project-type input:checked');return !!r&&r.value==='증축';};
+ function floorsOf(t){const out=[];String(t||'').split(/[,，\/\s]+/).filter(Boolean).forEach(tok=>{const m=tok.match(/^(-?\d+)\s*[~～-]\s*(-?\d+)$/);if(m&&!/^-\d+$/.test(tok)){let a=Number(m[1]),b=Number(m[2]);if(a>b)[a,b]=[b,a];for(let k=a;k<=b;k++)if(k)out.push(k);}else{const n=Number(tok.replace(/^B/i,'-'));if(Number.isInteger(n)&&n)out.push(n);}});return out;}
+ let busy=false;
+ function raise(){
+  if(busy||!isExt())return;const kind=($('extensionKind')||{}).value;if(kind!=='vertical'&&kind!=='horizontal')return;
+  const g=$('ground'),b=$('basement');if(!g||!b)return;
+  let fl=floorsOf(($('extensionFloors')||{}).value);
+  document.querySelectorAll('#floorRows .floor-row').forEach(r=>{const f=Number((r.querySelector('[data-key=floor]')||{}).value),a=Number((r.querySelector('.v157-add')||{}).value);if(f&&a>0)fl.push(f);});
+  if(!fl.length)return;
+  const up=Math.max(0,...fl),dn=Math.max(0,...fl.map(n=>-n));const msgs=[];
+  busy=true;try{
+   if(up>Number(g.value||0)){g.value=String(up);fire(g);msgs.push('지상 '+up+'층');}
+   if(dn>Number(b.value||0)){b.value=String(dn);fire(b);msgs.push('지하 '+dn+'층');}
+  }finally{busy=false;}
+  let n=$('v196-gnote');if(!n){n=document.createElement('p');n.id='v196-gnote';n.className='v196-note';const bl=b.closest('label');(bl||b).after(n);}
+  if(msgs.length){n.textContent='증축하려는 층에 맞춰 증축 후 층수를 '+msgs.join(' · ')+'으로 바꿨습니다.';n.hidden=false;}
+ }
+ /* ⑤ 구획 시 증축 층만 */
+ const EXC=['wall','door','low'];
+ function excUI(){
+  const ex=isExt()&&EXC.includes(($('extensionException')||{}).value);
+  document.body.classList.toggle('v196-exc',ex);
+  const anyOld=[...document.querySelectorAll('#floorRows .v157-old')].some(i=>Number(i.value)>0);
+  let t=$('v196-oldtoggle');
+  if(ex){
+   if(!t){t=document.createElement('div');t.id='v196-oldtoggle';t.className='v196-excbox';
+    t.innerHTML='<b>기존 부분과 구획됨 — 증축 부분만 증축 당시 기준을 적용합니다.</b><span>증축하는 층과 그 층의 증축 면적만 넣으면 됩니다. 기존 층 면적은 넣지 않아도 됩니다.</span><label class="v196-chk"><input type="checkbox" id="v196-showold"> 기존 층 면적도 함께 입력 (선택)</label>';
+    const fr=$('v158-floors');const anchor=fr?fr.querySelector('.floor-heading')||fr.querySelector('summary'):$('floorRows');(anchor&&anchor.nextSibling?anchor.parentNode.insertBefore(t,anchor.nextSibling):($('floorRows')||document.body).before(t));
+    $('v196-showold').addEventListener('change',()=>document.body.classList.toggle('v196-showold',$('v196-showold').checked));}
+   t.hidden=false;if(anyOld&&!$('v196-showold').checked){$('v196-showold').checked=true;}
+   document.body.classList.toggle('v196-showold',$('v196-showold').checked);
+  }else{if(t)t.hidden=true;document.body.classList.remove('v196-showold');}
+  // 증축 층 행: 기존 면적 비어 있으면 0으로 간주되도록 채움
+  if(ex&&!$('v196-showold').checked)document.querySelectorAll('#floorRows .floor-row').forEach(r=>{const o=r.querySelector('.v157-old');if(o&&o.value===''){o.value='0';o.dispatchEvent(new Event('input',{bubbles:true}));}});
+ }
+ function start(){
+  document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='extensionFloors'||t.closest('#floorRows'))setTimeout(raise,0);},true);
+  document.addEventListener('change',e=>{const t=e.target;if(!t)return;if(t.id==='extensionFloors'||t.id==='extensionKind'||(t.closest&&t.closest('#floorRows')))setTimeout(raise,0);if(t.id==='extensionException'||t.id==='v158-exc'||t.id==='extensionKind'||(t.closest&&t.closest('label.project-type')))setTimeout(excUI,30);},true);
+  const fr=$('floorRows');if(fr)new MutationObserver(()=>setTimeout(excUI,30)).observe(fr,{childList:true});
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type'))setTimeout(excUI,60);},true);
+  excUI();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,100));else setTimeout(start,100);
 })();
 </script>
 </body></html>
