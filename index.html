@@ -5035,6 +5035,8 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 .ur .ur-h .ur-cap,.ur .ur-grp .ur-cap{margin-left:auto;padding-right:12px;font-size:11px;font-weight:400;color:#8fa6c2;white-space:nowrap}
 .ur .ur-h .ur-cap{align-self:flex-end}
 .ur .ur-grp small{min-width:0}
+
+.ur .ur-grp small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5072,7 +5074,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   if(!why.length)return '<div class="'+cls+' ur-plain"><div class="ur-sum">'+head+'</div></div>';
   return '<details class="'+cls+'"><summary class="ur-sum">'+head+'</summary><div class="ur-why">'+why.map((w,i)=>'<p'+(i?' class="ur-sub"':'')+'>'+(w.html||esc(w))+'</p>').join('')+'</div></details>';
  }
- const GN={new:['착공','착공신고 대상 공사'],cond:['조건부','건물에 설비가 있는지에 따라 착공 여부가 달라짐'],act:['비착공','착공신고 없이 설치·조정']};
+ const GN={new:['착공','착공신고 대상'],cond:['조건부','기존 설비 유무로 결정'],act:['비착공','착공신고 없이 설치']};
  function cards(yes,exset,cap){
   const c=y=>card(y,exset.has(y.name));
   if(!yes.some(y=>y.group))return '<div class="ur-list">'+yes.map(c).join('')+'</div>';
