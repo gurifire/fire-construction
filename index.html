@@ -1425,6 +1425,17 @@ function mount(){
    output.append(det);
   }
  }
+ function v181HistoryRender(output,ex,head,sub,basis,note){
+  const rows=ex.rows,rel=new Set(ex.relief.map(r=>r[0])),fmt=n=>Number(n).toLocaleString('ko-KR');
+  const html=window.URender({head,sub,band:{kind:'era',title:'그 당시 기준 — '+basis,text:'당시 면제·대체 조항을 함께 적용했습니다.'},
+   yes:rows.filter(r=>r[1]==='yes').map(r=>({name:r[0],chips:[{t:window.URshortRef(r[2]),k:'ref'}],why:[r[2]]})),
+   review:rows.filter(r=>r[1]==='review').map(r=>({name:r[0],reason:r[2]})),
+   no:rows.filter(r=>r[1]==='no'&&!rel.has(r[0])).map(r=>({name:r[0],reason:r[2]})),
+   subs:ex.subs,relief:ex.relief.map(r=>({name:r[0],text:'→ 내화구조·불연 마감 완화 '+r.relief.m+'배 적용',small:'원래 연면적 '+fmt(r.relief.a)+'㎡ 이상이면 대상이지만, 주요구조부 내화구조·실내 불연 마감이면 '+fmt(r.relief.a*r.relief.m)+'㎡ 이상만 대상 ('+(ex.prefix||'소방법시행령')+' '+r.relief.r+')'})),
+   cond:ex.cond.map(c=>({name:c.name,text:c.text,cond:c.cond,ref:c.ref,have:c.have})),condTag:'그 당시 기준',note});
+  const wrap=document.createElement('div');wrap.innerHTML=html;output.append(wrap.firstElementChild);
+ }
+ function v181DateLabel(){const [y,m,d]=appliedDate.split('-').map(Number);return y+'. '+m+'. '+d+'. 기준';}
  function appendQuickResults(output,rows){
   const heading=document.createElement('h3');
   heading.className='quick-result-title';
@@ -1538,15 +1549,11 @@ function mount(){
    return;
   }
   if(quickEngine){
-   const heading=document.createElement('p');
-   heading.textContent=quickEngine.useMeta(use.value).label+subtypeCaption()+' · '+area.valueAsNumber+'㎡ · 지상 '+ground.value+'층 / 지하 '+basement.value+'층';
-   catalogOutput.append(heading);
    const qex=v180Exempt(annexSupplement(quickResults({use:use.value,area:area.valueAsNumber,
     ground:ground.valueAsNumber,basement:basement.valueAsNumber,subtype:subtype.value}),quickEngine.useMeta(use.value).label,area.valueAsNumber,ground.valueAsNumber,basement.valueAsNumber),appliedDate);
-   appendQuickResults(catalogOutput,qex.rows,qex);
-   const note=document.createElement('p');
-   note.textContent='간편검색은 기본 설치조건을 선별하고 당시 면제·대체 조항을 함께 표시합니다. 증축 특례, 용도변경 범위, 경과조치 및 착공·감리는 별도 검토가 필요합니다.';
-   catalogOutput.append(note);
+   const law=quickVersion.installationLaw||{};
+   v181HistoryRender(catalogOutput,qex,quickEngine.useMeta(use.value).label+subtypeCaption()+' · '+v181DateLabel(),'시행령 · 연면적 '+area.valueAsNumber.toLocaleString('ko-KR')+'㎡ · 지상 '+ground.value+'층 / 지하 '+basement.value+'층','설치기준 시행본 '+(law.effectiveFrom||'')+' 별표 4·5',
+    '간편검색은 기본 설치조건을 선별하고 당시 면제·대체 조항을 함께 표시합니다. 증축 특례, 용도변경 범위, 경과조치 및 착공·감리는 별도 검토가 필요합니다.');
    return;
   }
   const [edition]=lookupHistorical(appliedDate);
@@ -1554,14 +1561,11 @@ function mount(){
   const annexEra=window.V116_ANNEX_RULES?.[eraDay];
   const era=annexEra?annexEra.f:window.V115_ERA_RULES?.[eraDay];
   if(era){
-   const eraHeading=document.createElement('p');
-   eraHeading.textContent=edition[2][Number(use.value)]+subtypeCaption()+' · '+area.valueAsNumber+'㎡ · 지상 '+ground.value+'층 / 지하 '+basement.value+'층';
-   catalogOutput.append(eraHeading);
    const eex=v180Exempt(eraEvaluate(era,edition[2][Number(use.value)],area.valueAsNumber,ground.valueAsNumber,basement.valueAsNumber,annexEra?'시행령':'소방법시행령',subtypeDetailText(),catalogForm.elements.fire.value),appliedDate);
-   appendQuickResults(catalogOutput,eex.rows,eex);
-   const eraNote=document.createElement('p');
-   eraNote.textContent=(annexEra?'당시 시행령 설치기준 별표':eraDay<'19811106'?'당시 소방법시행령 제15조~제36조':eraDay<'19920728'?'당시 소방법시행령 제17조~제19조(제1종~제3종장소)':'당시 소방법시행령 제28조~제32조')+'의 연면적·층수·용도 기준으로 선별하고, 당시 면제·대체 조항을 함께 적용했습니다. 층별 바닥면적·무창층·수용인원 등 입력하지 않은 조건은 추가확인으로 표시하며, 경과조치는 원문 확인이 필요합니다.'+(subtypeCaption()?' 세부 용도는 분류 확인용입니다.':'');
-   catalogOutput.append(eraNote);
+   const basis=(annexEra?'당시 시행령 설치기준 별표':eraDay<'19811106'?'당시 소방법시행령 제15조~제36조':eraDay<'19920728'?'당시 소방법시행령 제17조~제19조(제1종~제3종장소)':'당시 소방법시행령 제28조~제32조')+'의 연면적·층수·용도 기준으로 선별하고, 당시 면제·대체 조항을 함께 적용했습니다. 층별 바닥면적·무창층·수용인원 등 입력하지 않은 조건은 추가확인으로 표시하며, 경과조치는 원문 확인이 필요합니다.'+(subtypeCaption()?' 세부 용도는 분류 확인용입니다.':'');
+   v181HistoryRender(catalogOutput,eex,edition[2][Number(use.value)]+subtypeCaption()+' · '+v181DateLabel(),(annexEra?'시행령':'소방법시행령')+' · 연면적 '+area.valueAsNumber.toLocaleString('ko-KR')+'㎡ · 지상 '+ground.value+'층 / 지하 '+basement.value+'층',
+    annexEra?'시행령 설치기준 별표':eraDay<'19811106'?'소방법시행령 제15조~제36조':eraDay<'19920728'?'소방법시행령 제17조~제23조':'소방법시행령 제28조~제33조',
+    '층별 바닥면적·무창층·수용인원 등 입력하지 않은 조건은 확인 필요로 표시합니다. 경과조치는 원문을 확인하세요.'+(subtypeCaption()?' 세부 용도는 분류 확인용입니다.':''));
    return;
   }
   const heading=document.createElement('p');
@@ -4877,6 +4881,87 @@ if(document.readyState==='complete')go();else window.addEventListener('load',go)
 #history-catalog-results .v180-row small em.v180-have{color:#ffcf7a;font-style:normal;margin:0}
 #history-fire-label small{color:var(--d-mute,#9fb3cc);font-weight:400}
 @media (max-width:640px){#history-catalog-results .v180-row,#history-catalog-results .v180-cond-head{grid-template-columns:1fr}#history-catalog-results .v180-row small{grid-column:1}#history-catalog-results .v180-cond-head span:last-child{display:none}#history-catalog-results .v180-cond-head span:first-child::after{content:' → 면제 조건'}}
+.ur{--ur-yes:#4a8fe0;--ur-ex:#7fe0b4;--ur-chk:#ff9a6b;--ur-no:#b4c1d2;--ur-rl:#ffcf7a;color:#eef3fa;font-size:14px;line-height:1.55}
+.ur *{box-sizing:border-box}
+.ur-head{background:linear-gradient(90deg,#1d3d68,#183358);border:1px solid #3a5f92;border-radius:10px;padding:10px 12px}
+.ur-head b{display:block;font-size:15px;color:#fff}.ur-head span{display:block;color:#b9cbe2;font-size:12.5px;margin-top:2px}
+.ur-band{margin:10px 0 0;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5}
+.ur-band b{display:block;font-size:14.5px;color:#fff}.ur-band span{display:block}.ur-band small{display:block;margin-top:4px;font-size:11.5px;opacity:.8}
+.ur-band.ur-on{background:#3a1d12;border:1px solid #a4532f;color:#ffd7c4}
+.ur-band.ur-off{background:#12302a;border:1px solid #2f6f5a;color:#c9eedc}
+.ur-band.ur-cond{background:#33290f;border:1px solid #8a7330;color:#ffe9b8}
+.ur-band.ur-era{background:#16304f;border:1px solid #2f5687;color:#cfe0f5}.ur-band.ur-era b{font-size:13.5px}
+.ur-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.ur-tile{display:block;cursor:pointer;text-decoration:none;border-radius:10px;padding:9px 10px;background:#0f2441;border:1px solid #284670;border-top:3px solid var(--c)}
+.ur-t-yes{--c:var(--ur-yes)}.ur-t-chk{--c:var(--ur-chk)}.ur-t-no{--c:var(--ur-no)}
+.ur-tile b{font-size:22px;color:var(--c);line-height:1.2}.ur-tile b small{font-size:12px;margin-left:2px}.ur-tile span{display:block;font-size:12px;color:#cfe0f5}
+.ur-h{margin:14px 0 8px!important;font-size:14px!important;display:flex;gap:6px;align-items:center;color:#fff!important}
+.ur-h::before{content:'';width:4px;height:14px;border-radius:2px;background:var(--ur-yes)}
+.ur-h em{font-style:normal;color:var(--ur-yes)}.ur-h span{margin-left:auto;font-size:11px;color:#8fa6c2;font-weight:400}
+.ur-list{display:grid;gap:6px}
+.ur-it{background:#0f2441;border:1px solid #284670;border-left:3px solid var(--ur-yes);border-radius:8px}
+.ur-sum{display:flex;align-items:center;gap:8px;padding:8px 10px;list-style:none;cursor:pointer}
+.ur-plain .ur-sum{cursor:default}
+.ur-sum::-webkit-details-marker{display:none}
+.ur-sum>b{flex:1;font-size:13.5px;color:#eef3fa;min-width:0}
+details.ur-it>.ur-sum>b::after{content:' ▸';color:#5f7ea6;font-weight:400;font-size:11px}
+details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
+.ur-chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.ur-chip{font-size:11px;padding:2px 8px;border-radius:99px;background:#1c3a63;color:#bcd6f5;white-space:nowrap}
+.ur-chip.ur-act{background:#24324a;color:#dfe9f6;border:1px solid #3a5577}
+.ur-chip.ur-new{background:#4a2414;color:#ffb48f;border:1px solid #8a4526}
+.ur-chip.ur-ref{background:transparent;color:#8fa6c2;border:1px solid #2f4a6e}
+.ur-why{margin:0 10px 9px;padding:8px 10px;border-radius:7px;background:#0b1c33;color:#cfe0f5;font-size:12.5px;line-height:1.55}
+.ur-why p{margin:0}.ur-why p.ur-sub{margin-top:4px;color:#8fa6c2;font-size:11.5px}
+.ur-why a{color:#8ec0ff}
+.ur-empty{margin:4px 0;color:#9fb3cc;font-size:13px}
+.ur-box{margin-top:12px;border-radius:10px;padding:10px 12px;background:#0f2441;border:1px solid var(--c)}
+.ur-subs{--c:var(--ur-ex)}.ur-relief{--c:var(--ur-rl)}.ur-cond{--c:var(--ur-ex)}
+.ur-box h5{margin:0 0 6px;font-size:13.5px;color:#fff;display:inline}.ur-box h5 em{font-style:normal;color:var(--c);margin-left:5px}
+.ur-subs h5,.ur-relief h5{display:block}
+.ur-cond>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ur-cond>summary::-webkit-details-marker{display:none}
+.ur-cond>summary::before{content:'▸';color:var(--ur-ex)}.ur-cond[open]>summary::before{content:'▾'}
+.ur-cond>summary i{margin-left:auto;font-style:normal;font-size:11px;color:#9fb3cc}
+.ur-row{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr);gap:2px 10px;padding:7px 0;border-top:1px solid #22395a;font-size:12.5px}
+.ur-box h5+.ur-row,.ur-cond>summary+.ur-row{border-top:0}
+.ur-row b{color:#eef3fa}.ur-row span{color:#dfe9f6}.ur-row small{grid-column:2;color:#8fa6c2;font-size:11.5px;line-height:1.45}
+.ur-row small i{font-style:normal;color:var(--ur-rl)}
+.ur-fold{margin-top:8px;border-radius:10px;background:#0f2441;border:1px solid #284670}
+.ur-f-chk{--c:var(--ur-chk)}.ur-f-no{--c:var(--ur-no)}
+.ur-fold>summary{list-style:none;cursor:pointer;padding:9px 12px;font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center;color:#eef3fa}
+.ur-fold>summary::-webkit-details-marker{display:none}
+.ur-fold>summary::before{content:'▸';color:var(--c)}.ur-fold[open]>summary::before{content:'▾'}
+.ur-fold>summary em{font-style:normal;color:var(--c)}.ur-fold>summary span{margin-left:auto;font-weight:400;color:#8fa6c2;font-size:12px}
+.ur-fold[open]>summary span{display:none}
+.ur-fold-body{padding:0 12px 8px}
+.ur-frow{padding:7px 0;border-top:1px solid #22395a;font-size:12.5px}
+.ur-frow b{display:block;color:#eef3fa}.ur-frow span{display:block;color:#a9bcd4;margin-top:1px;white-space:pre-line}
+.ur-note{margin:8px 0 0;font-size:11.5px;color:#8fa6c2;line-height:1.5}
+.ur-foot{margin-top:12px}
+@media(max-width:640px){.ur-row{grid-template-columns:1fr}.ur-row small{grid-column:1}.ur-sum{flex-wrap:wrap}.ur-chips{justify-content:flex-start}}
+@media print{.ur{color:#000}.ur-head,.ur-band,.ur-tile,.ur-it,.ur-box,.ur-fold{background:#fff!important;color:#000!important;border-color:#999!important}.ur-fold-body,.ur-why{display:block!important}.ur *{color:#000!important}}
+.ur details{padding-top:0!important;margin-bottom:0}
+.ur details>summary{min-height:0!important}
+.ur summary{color:#eef3fa!important;font-size:inherit}
+.ur details.ur-it>summary::before{content:none!important;display:none!important}
+.ur details.ur-it>summary.ur-sum{padding:8px 10px!important;display:flex!important}
+.ur details.ur-fold>summary,.ur details.ur-cond>summary{display:flex!important}
+.ur details.ur-fold>summary{padding:9px 12px!important;font-size:13px!important}
+.ur details.ur-cond>summary{padding:0!important}
+.ur details.ur-fold>summary::before,.ur details.ur-cond>summary::before{content:'▸'!important;width:auto!important;transform:none!important;display:inline!important;color:var(--c)}
+.ur details.ur-fold[open]>summary::before,.ur details.ur-cond[open]>summary::before{content:'▾'!important}
+.ur p.ur-note,.ur p.ur-empty{font-size:11.5px!important;line-height:1.5!important}
+.ur .ur-why p{font-size:12.5px!important;line-height:1.55!important}.ur .ur-why p.ur-sub{font-size:11.5px!important}
+.ur details.ur-it{margin:0!important}
+.ur details.ur-fold{margin:8px 0 0!important}
+.ur details.ur-cond{margin:12px 0 0!important}
+
+#history-catalog-results .ur p,#history-catalog-results .ur div,#history-catalog-results .ur span{background-color:transparent}
+#history-catalog-results .ur .ur-why p{color:#cfe0f5!important;background:transparent!important;border:0!important}
+#history-catalog-results .ur .ur-why p.ur-sub{color:#8fa6c2!important}
+#history-catalog-results .ur p.ur-note,#history-catalog-results .ur p.ur-empty{color:#8fa6c2!important;background:transparent!important;border:0!important;padding:0!important}
+#history-catalog-results .ur .ur-head{background:linear-gradient(90deg,#1d3d68,#183358)!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -4901,4 +4986,44 @@ const R=window.V115_ERA_RULES=window.V115_ERA_RULES||{};const D=window.V114_HIST
 for(const [day,rules] of Object.entries(X.rules))R[day]=rules;
 if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[key]=subs.map(list=>list.map(t=>{D.s.push(t);return '·'+(D.s.length-1);}));D.d[day]=key;}}
 })();</script>
+<script id="v181-ur">/* V181: 검색 결과 공통 틀 (상세·빠른·간편 공통) */
+(function(){
+ const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const chip=c=>'<span class="ur-chip'+(c.k?' ur-'+c.k:'')+'">'+esc(c.t)+'</span>';
+ function card(y){
+  const chips=(y.chips||[]).filter(c=>c&&c.t).map(chip).join('');
+  const head='<b>'+esc(y.name)+'</b><span class="ur-chips">'+chips+'</span>';
+  const why=(y.why||[]).filter(Boolean);
+  if(!why.length)return '<div class="ur-it ur-plain"><div class="ur-sum">'+head+'</div></div>';
+  return '<details class="ur-it"><summary class="ur-sum">'+head+'</summary><div class="ur-why">'+why.map((w,i)=>'<p'+(i?' class="ur-sub"':'')+'>'+(w.html||esc(w))+'</p>').join('')+'</div></details>';
+ }
+ function box(cls,title,rows){if(!rows.length)return '';
+  return '<div class="ur-box '+cls+'"><h5>'+title+'<em>'+rows.length+'</em></h5>'+rows.join('')+'</div>';}
+ function row(a,b,small){return '<div class="ur-row"><b>'+esc(a)+'</b><span>'+b+'</span>'+(small?'<small>'+small+'</small>':'')+'</div>';}
+ function fold(cls,title,items,open){if(!items.length)return '';
+  return '<details class="ur-fold '+cls+'"'+(open?' open':'')+'><summary>'+title+' <em>'+items.length+'</em><span>눌러서 보기</span></summary><div class="ur-fold-body">'+items.map(x=>'<div class="ur-frow"><b>'+esc(x.name)+'</b>'+(x.reason?'<span>'+(x.html?x.reason:esc(x.reason))+'</span>':'')+'</div>').join('')+'</div></details>';}
+ window.URender=function(m){
+  const yes=m.yes||[],review=m.review||[],no=m.no||[];
+  let h='<div class="ur">';
+  h+='<div class="ur-head"><b>'+esc(m.head)+'</b>'+(m.sub?'<span>'+esc(m.sub)+'</span>':'')+'</div>';
+  if(m.band)h+='<div class="ur-band ur-'+m.band.kind+'"><b>'+esc(m.band.title)+'</b>'+(m.band.text?'<span>'+(m.band.html?m.band.text:esc(m.band.text))+'</span>':'')+(m.band.small?'<small>'+esc(m.band.small)+'</small>':'')+'</div>';
+  if(m.top)h+=m.top;
+  h+='<div class="ur-tiles"><a class="ur-tile ur-t-yes" data-ur-go="yes"><b>'+yes.length+'<small>개</small></b><span>설치 대상</span></a><a class="ur-tile ur-t-chk" data-ur-go="chk"><b>'+review.length+'<small>개</small></b><span>확인 필요</span></a><a class="ur-tile ur-t-no" data-ur-go="no"><b>'+no.length+'<small>개</small></b><span>해당 없음</span></a></div>';
+  h+='<h4 class="ur-h" data-ur="yes">'+esc(m.yesTitle||'설치 대상')+' <em>'+yes.length+'</em>'+(m.chipCaption?'<span>'+esc(m.chipCaption)+'</span>':'')+'</h4>';
+  h+=yes.length?'<div class="ur-list">'+yes.map(card).join('')+'</div>':'<p class="ur-empty">'+esc(m.emptyText||'입력값으로 설치 대상이 확인된 시설이 없습니다.')+'</p>';
+  if(m.afterYes)h+=m.afterYes;
+  h+=box('ur-subs','대체 설비로 목록에서 뺀 시설',(m.subs||[]).map(x=>row(x.name,'→ '+esc(x.by)+'로 대체',esc((x.why?'원래 설치 대상이지만, '+x.why+' ':'')+'('+x.ref+')'))));
+  h+=box('ur-relief','완화 기준으로 빠진 시설',(m.relief||[]).map(x=>row(x.name,esc(x.text),esc(x.small))));
+  const cond=m.cond||[];
+  if(cond.length)h+='<details class="ur-box ur-cond" open><summary><h5>면제 받을 수 있는 경우<em>'+cond.length+'</em></h5>'+(m.condTag?'<i>'+esc(m.condTag)+'</i>':'')+'</summary>'+cond.map(c=>row(c.name,esc(c.text)+(c.cond?'':' 설치 시'),esc(c.ref)+(c.have&&c.have.length?' · <i>'+esc(c.have.join('·'))+'도 설치 대상 → 그 범위 면제 가능</i>':''))).join('')+'<p class="ur-note">면제는 대체 설비가 기준에 맞게 설치된 범위(유효범위)에만 적용됩니다. 설치 대상 판정은 바꾸지 않습니다.</p></details>';
+  h+='<span data-ur="chk"></span>'+fold('ur-f-chk','확인 필요',review,m.openReview);
+  h+='<span data-ur="no"></span>'+fold('ur-f-no','해당 없음',no,false);
+  if(m.bottom)h+=m.bottom;
+  if(m.note)h+='<p class="ur-note ur-foot">'+esc(m.note)+'</p>';
+  return h+'</div>';
+ };
+ document.addEventListener('click',e=>{const t=e.target.closest('[data-ur-go]');if(!t)return;const root=t.closest('.ur');const k=t.dataset.urGo;const anchor=root&&root.querySelector('[data-ur="'+k+'"]');if(!anchor)return;const f=anchor.nextElementSibling;if(f&&f.tagName==='DETAILS')f.open=true;(f||anchor).scrollIntoView({behavior:'smooth',block:'start'});});
+ window.URshortRef=function(r){r=String(r||'');const C='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';const head=r.split('—')[0];let m=head.match(/제(\d+)조(?:제(\d+)항)?(?:제(\d+)호)?/);if(m&&!/별표/.test(head))return '§'+m[1]+(m[2]?(C[m[2]-1]||'-'+m[2]):'')+(m[3]?' '+m[3]+'호':'');m=r.match(/별표\s*(\d+)\s*(?:제(\d+)호)?([가-힣]목)?/);if(m)return '별표'+m[1]+(m[2]?' '+m[2]+'호':'')+(m[3]?m[3][0]:'');return '';};
+})();
+</script>
 </body></html>
