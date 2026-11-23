@@ -3499,7 +3499,7 @@ body.v132-q #form,body.v132-q #change-module,body.v132-q #result{display:none!im
   const notes=[];if(b.spread)notes.push(fl(b.F)+' 외 나머지 면적('+(b.total-b.fa).toLocaleString()+'㎡)은 건물 주용도로 보고 다른 층에 고르게 나눠 계산했습니다.');
   notes.push('판정은 상세 검색과 같은 기준입니다. 무창층·주차·주방 등 세부 조건은 상세 검색에서 확인하세요.');
   let h=window.URender({head:(F==null?'건물 전체':fl(F))+' · '+useTxt,sub:ver+' · 연면적 '+b.total.toLocaleString()+'㎡ · 지상 '+b.G+'층'+(b.B?' / 지하 '+b.B+'층':''),
-   yesTitle:F==null?'설치 대상':fl(F)+' 설치 대상',chipCaption:'설치 범위',
+   yesTitle:F==null?'설치 대상':fl(F)+' 설치 대상',chipCaption:'범위',
    yes:yesAll.map(cardOf),
    subs:subs.map(x=>({name:x.name,by:x.byName,why:x.why,ref:'시행령 '+x.ref})),
    cond,folds:else_.length?[{cls:'ur-f-no',title:'다른 층만 해당',items:else_.map(r=>({name:r.name+(chip(r.scope)?' · '+chip(r.scope):''),reason:r.reason}))}]:[],
@@ -5030,6 +5030,11 @@ details.ur-it[open]>.ur-sum>b::after{content:' ▾'}
 .ur-exist b{display:block;color:#ffdd8a;margin-bottom:2px}
 .ur-exist ul{margin:2px 0 0;padding-left:18px}.ur-exist li{margin:0;background:none!important;border:0!important;padding:0!important}
 .ur-exist button{margin-top:6px;font-size:12px;padding:5px 10px;border-radius:7px;background:#1c3a63;color:#dfe9f6;border:1px solid #3a5f92;cursor:pointer}
+
+/* V189: '범위' 안내 글씨를 칩 열 위에 맞춤 */
+.ur .ur-h .ur-cap,.ur .ur-grp .ur-cap{margin-left:auto;padding-right:12px;font-size:11px;font-weight:400;color:#8fa6c2;white-space:nowrap}
+.ur .ur-h .ur-cap{align-self:flex-end}
+.ur .ur-grp small{min-width:0}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5068,11 +5073,11 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   return '<details class="'+cls+'"><summary class="ur-sum">'+head+'</summary><div class="ur-why">'+why.map((w,i)=>'<p'+(i?' class="ur-sub"':'')+'>'+(w.html||esc(w))+'</p>').join('')+'</div></details>';
  }
  const GN={new:['착공','착공신고 대상 공사'],cond:['조건부','건물에 설비가 있는지에 따라 착공 여부가 달라짐'],act:['비착공','착공신고 없이 설치·조정']};
- function cards(yes,exset){
+ function cards(yes,exset,cap){
   const c=y=>card(y,exset.has(y.name));
   if(!yes.some(y=>y.group))return '<div class="ur-list">'+yes.map(c).join('')+'</div>';
   let h='';for(const k of ['new','cond','act']){const g=yes.filter(y=>y.group===k);if(!g.length)continue;
-   h+='<div class="ur-grp"><span class="ur-tag ur-tag-'+k+'">'+GN[k][0]+'</span>'+g.length+'개<small>'+GN[k][1]+'</small></div><div class="ur-list">'+g.map(c).join('')+'</div>';}
+   h+='<div class="ur-grp"><span class="ur-tag ur-tag-'+k+'">'+GN[k][0]+'</span>'+g.length+'개<small>'+GN[k][1]+'</small>'+(cap&&!h?'<span class="ur-cap">'+esc(cap)+'</span>':'')+'</div><div class="ur-list">'+g.map(c).join('')+'</div>';}
   const rest=yes.filter(y=>!y.group);if(rest.length)h+='<div class="ur-list">'+rest.map(c).join('')+'</div>';
   return h;
  }
@@ -5088,9 +5093,9 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   if(m.band)h+='<div class="ur-band ur-'+m.band.kind+'"><b>'+esc(m.band.title)+'</b>'+(m.band.text?'<span>'+(m.band.html?m.band.text:esc(m.band.text))+'</span>':'')+(m.band.small?'<small>'+esc(m.band.small)+'</small>':'')+'</div>';
   if(m.top)h+=m.top;
   h+='<div class="ur-tiles"><a class="ur-tile ur-t-yes" data-ur-go="yes"><b>'+yes.length+'<small>개</small></b><span>설치 대상</span></a><a class="ur-tile ur-t-chk" data-ur-go="chk"><b>'+(m.reviewCount!=null?m.reviewCount:review.length)+'<small>개</small></b><span>확인 필요</span></a><a class="ur-tile ur-t-no" data-ur-go="no"><b>'+no.length+'<small>개</small></b><span>해당 없음</span></a></div>';
-  h+='<h4 class="ur-h" data-ur="yes">'+esc(m.yesTitle||'설치 대상')+' <em>'+yes.length+'</em>'+(m.captionHtml?'<span>'+m.captionHtml+'</span>':m.chipCaption?'<span>'+esc(m.chipCaption)+'</span>':'')+'</h4>';
+  h+='<h4 class="ur-h" data-ur="yes">'+esc(m.yesTitle||'설치 대상')+' <em>'+yes.length+'</em>'+(yes.some(y=>y.group)?'':m.captionHtml?'<span class="ur-cap">'+m.captionHtml+'</span>':m.chipCaption?'<span class="ur-cap">'+esc(m.chipCaption)+'</span>':'')+'</h4>';
   const exset=new Set();for(const c of (m.cond||[]))if(c.have&&c.have.length)c.name.split(' · ').forEach(n=>exset.add(n));
-  h+=yes.length?cards(yes,exset):'<p class="ur-empty">'+esc(m.emptyText||'입력값으로 설치 대상이 확인된 시설이 없습니다.')+'</p>';
+  h+=yes.length?cards(yes,exset,m.chipCaption):'<p class="ur-empty">'+esc(m.emptyText||'입력값으로 설치 대상이 확인된 시설이 없습니다.')+'</p>';
   if(m.afterYes)h+=m.afterYes;
   h+=box('ur-subs','대체 설비로 목록에서 뺀 시설',(m.subs||[]).map(x=>row(x.name,'→ '+esc(x.by)+'로 대체',esc((x.why?'원래 설치 대상이지만, '+x.why+' ':'')+'('+x.ref+')'))));
   h+=box('ur-relief','완화 기준으로 빠진 시설',(m.relief||[]).map(x=>row(x.name,esc(x.text),esc(x.small))));
