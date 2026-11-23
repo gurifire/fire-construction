@@ -5129,7 +5129,9 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   let box=root.querySelector(':scope>#ur-detail,:scope>.ur-detail');if(box)box.remove();
   box=document.createElement('div');box.className='ur-detail';if(!isChange)box.id='ur-detail';box.innerHTML=html;
   const v89=root.querySelector('details.v89-check');const fb=box.querySelector('.ur-f-chk .ur-fold-body');
-  if(v89&&fb){const c=document.createElement('div');c.className='ur-v89';c.innerHTML='<p class="ur-sub-h">입력하거나 확인하면 설치 대상이 바뀔 수 있는 조건입니다.</p>';const g=v89.querySelector('.v170-groups');if(g)c.append(g.cloneNode(true));const etc=v89.querySelector('.v89-etc');if(etc)c.append(etc.cloneNode(true));fb.prepend(c);}
+  if(v89&&fb){const c=document.createElement('div');c.className='ur-v89';c.innerHTML='<p class="ur-sub-h">입력하거나 확인하면 설치 대상이 바뀔 수 있는 조건입니다.</p>';const g=v89.querySelector('.v170-groups');if(g)c.append(g.cloneNode(true));const etc=v89.querySelector('.v89-etc');if(etc){const useTxt=head.split('→').pop();const REL=[[/영화관|공연장|무대/,/문화|집회|근린|종교|운동|관광|복합/],[/유흥/,/위락|근린|복합/],[/대규모점포|지하역사|지하상가/,/판매|운수|지하가|복합/],[/관광호텔/,/숙박|관광|복합/],[/병원/,/의료|복합/],[/전통시장/,/판매|시장|복합/],[/지하구|공동구|터널/,/지하구|공동구|터널/]];
+    const groups=T(etc).replace(/^그 밖에:\s*/,'').split(' / ').map(g=>g.split('·').filter(w=>REL.some(([a,b])=>a.test(w)&&b.test(useTxt))).join('·')).filter(Boolean);
+    if(groups.length){const e=etc.cloneNode(false);e.textContent='그 밖에: '+groups.join(' / ');c.append(e);}}fb.prepend(c);}
   box.querySelectorAll('details').forEach(d=>d.dataset.v89='1');
   const anchor=root.querySelector(':scope>.print-meta');if(anchor)anchor.after(box);else root.prepend(box);
   root.classList.add('ur-on');
