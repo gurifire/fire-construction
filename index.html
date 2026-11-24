@@ -5553,6 +5553,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  function floorsOf(t){const out=[];String(t||'').split(/[,，\/\s]+/).filter(Boolean).forEach(tok=>{const m=tok.match(/^(-?\d+)\s*[~～-]\s*(-?\d+)$/);if(m&&!/^-\d+$/.test(tok)){let a=Number(m[1]),b=Number(m[2]);if(a>b)[a,b]=[b,a];for(let k=a;k<=b;k++)if(k)out.push(k);}else{const n=Number(tok.replace(/^B/i,'-'));if(Number.isInteger(n)&&n)out.push(n);}});return out;}
  let busy=false;
  function raise(){
+  return; /* V197로 대체 */
   if(busy||!isExt())return;const kind=($('extensionKind')||{}).value;if(kind!=='vertical'&&kind!=='horizontal')return;
   const g=$('ground'),b=$('basement');if(!g||!b)return;
   let fl=floorsOf(($('extensionFloors')||{}).value);
@@ -5592,6 +5593,70 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   excUI();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,100));else setTimeout(start,100);
+})();
+</script>
+<script id="v197-floors">/* V197: 증축 후 층수 = 기존층(대장 또는 입력값)과 증축하려는 층 중 높은 층. 증축하려는 층을 지우거나 낮추면 기존층으로 되돌림 */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const isExt=()=>{const r=document.querySelector('label.project-type input:checked');return !!r&&r.value==='증축';};
+ function floorsOf(t){const out=[];String(t||'').replace(/B\s*/gi,'-').split(/[,，\/\s]+/).filter(Boolean).forEach(tok=>{const m=tok.match(/^(-?\d+)\s*[~～-]\s*(-?\d+)$/);if(m&&!/^-\d+$/.test(tok)){let a=Number(m[1]),b=Number(m[2]);if(a>b)[a,b]=[b,a];for(let k=a;k<=b;k++)if(k)out.push(k);}else{const n=Number(tok);if(Number.isInteger(n)&&n)out.push(n);}});return out;}
+ function wanted(){
+  const fl=floorsOf(($('extensionFloors')||{}).value);
+  document.querySelectorAll('#floorRows .floor-row').forEach(r=>{const f=Number((r.querySelector('[data-key=floor]')||{}).value),a=Number((r.querySelector('.v157-add')||{}).value);if(f&&a>0)fl.push(f);});
+  return {up:Math.max(0,...fl),dn:Math.max(0,...fl.map(n=>-n))};
+ }
+ const TAG_REG='대장(기존층)+증축하려는 층',TAG_MAN='기존층+증축하려는 층';
+ function tagOf(el){const l=el.closest('label');return l&&l.querySelector(':scope>.v193-tag');}
+ function setTag(el,raised){
+  const l=el.closest('label');if(!l)return;let t=tagOf(el);
+  if(raised){
+   if(!t){t=document.createElement('span');t.className='v193-tag v197-tag';const tn=[...l.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(tn)tn.after(t);else l.prepend(t);}
+   t.textContent=el.dataset.v197reg==='1'?TAG_REG:TAG_MAN;t.classList.add('v197-sum');
+  }else if(t&&t.classList.contains('v197-sum')){
+   if(el.dataset.v197reg==='1'){t.textContent='대장';t.classList.remove('v197-sum');}else t.remove();
+  }
+ }
+ /* 기준값(기존층): 앱이 마지막으로 넣은 값과 다르면 사용자가·대장이 바꾼 것으로 보고 새 기준으로 삼음 */
+ function baseOf(el){
+  const cur=el.value;
+  if(el.dataset.v197set===undefined||cur!==el.dataset.v197set){
+   el.dataset.v197base=cur;
+  }
+  const t=tagOf(el);if(!t||!t.classList.contains('v197-sum'))el.dataset.v197reg=(t&&t.textContent==='대장')?'1':'0';
+  return el.dataset.v197base;
+ }
+ let busy=false;
+ function apply(el,want,label){
+  const base=baseOf(el),b=Number(base||0);
+  const target=want>b?String(want):base;
+  if(el.value!==target){busy=true;try{el.value=target;fire(el);}finally{busy=false;}}
+  el.dataset.v197set=el.value;
+  setTag(el,want>b);
+  return want>b?label+' '+(base===''?'미입력':b+'층')+' → '+want+'층':'';
+ }
+ function run(){
+  if(busy)return;const g=$('ground'),bs=$('basement');if(!g||!bs)return;
+  const kind=($('extensionKind')||{}).value;
+  const on=isExt()&&(kind==='vertical'||kind==='horizontal');
+  const w=on?wanted():{up:0,dn:0};
+  const msgs=[apply(g,w.up,'지상'),apply(bs,w.dn,'지하')].filter(Boolean);
+  let n=$('v196-gnote');
+  if(msgs.length){if(!n){n=document.createElement('p');n.id='v196-gnote';n.className='v196-note';const bl=bs.closest('label');(bl||bs).after(n);}
+   n.textContent='증축하려는 층에 맞춰 증축 후 층수를 바꿨습니다: '+msgs.join(' · ')+'. 증축하려는 층을 지우거나 낮추면 기존 층수로 돌아갑니다.';n.hidden=false;}
+  else if(n)n.hidden=true;
+ }
+ window.V197Floors=run;
+ function start(){
+  const later=()=>setTimeout(run,0);
+  document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='extensionFloors'||t.id==='ground'||t.id==='basement'||t.closest('#floorRows'))later();},true);
+  document.addEventListener('change',e=>{const t=e.target;if(!t)return;if(t.id==='extensionFloors'||t.id==='extensionKind'||(t.closest&&(t.closest('#floorRows')||t.closest('label.project-type'))))later();},true);
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type'))setTimeout(run,150);},true);
+  const fr=$('floorRows');if(fr)new MutationObserver(()=>setTimeout(run,30)).observe(fr,{childList:true});
+  ['v85-applied','v195-clear'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(run,400)));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,120));else setTimeout(start,120);
 })();
 </script>
 </body></html>
