@@ -3754,6 +3754,7 @@ body.v132-q #form,body.v132-q #change-module,body.v132-q #result{display:none!im
   const ref=$('v142-ref');if(ref)ref.hidden=m!=='change'||!ref.textContent;
  }
  function applied(e){
+  if(e.detail&&e.detail.restore)return;
   const it=e.detail&&e.detail.it||{},use=e.detail&&e.detail.use||'';
   const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
   if(mode==='full'&&/^증축/.test(typeNow())){const oa=$('oldArea');const v=Number(it.totArea);if(oa&&v){oa.value=String(Math.round(v*100)/100);fire(oa);}}
@@ -4592,7 +4593,7 @@ function fold(){
  if($('v158-floors'))return;
  const h=document.querySelector('.floor-heading'),add=$('addFloor');if(!h||!add)return;
  const d=document.createElement('details');d.id='v158-floors';
- const sm=document.createElement('summary');sm.innerHTML='<span id="v158-fsum">층별 바닥면적</span> <small>선택 입력 · <span id="v158-fcount"></span></small>';d.append(sm);
+ const sm=document.createElement('summary');sm.innerHTML='<span id="v158-fsum">층별 면적 (선택)</span><span id="v158-fcount" class="v198-badge"></span>';d.append(sm);
  h.before(d);let n=h;const nodes=[];while(n){nodes.push(n);if(n===add)break;n=n.nextElementSibling;}
  nodes.forEach(x=>d.append(x));
  const wb=$('workBox');
@@ -4600,9 +4601,11 @@ function fold(){
 }
 function count(){
  const c=$('v158-fcount'),s=$('v158-fsum');if(!c)return;
- const rows=[...document.querySelectorAll('#floorRows .floor-row')].filter(r=>[...r.querySelectorAll('input[data-key=floor],input[data-key=area],.v157-old,.v157-add')].some(i=>i.value!==''));
- c.textContent=rows.length?rows.length+'개 층 입력됨':'무창층·층별 기준이 필요할 때 펼치세요';
- s.textContent=isExt()?'층별 바닥면적 (기존·증축 나눠 입력)':'층별 바닥면적';
+ /* V198: 층 번호가 있고 면적(또는 무창층 답)이 있는 층만 셈 */
+ const pos=v=>Number(v)>0;
+ const rows=[...document.querySelectorAll('#floorRows .floor-row')].filter(r=>{const f=r.querySelector('input[data-key=floor]');if(!f||f.value===''||Number(f.value)===0)return false;const v=k=>(r.querySelector(k)||{}).value;const w=r.querySelector('select[data-key=windowless]');return pos(v('input[data-key=area]'))||pos(v('.v157-old'))||pos(v('.v157-add'))||(w&&w.value&&w.value!=='unknown');});
+ c.textContent=rows.length?rows.length+'개 층 입력됨':'입력한 층 없음';
+ s.textContent='층별 면적 (선택)';
  if(rows.length&&!$('v158-floors').dataset.auto){$('v158-floors').open=true;$('v158-floors').dataset.auto='1';}
 }
 window.V158ExcLabel=()=>LABEL[($('extensionException')||{}).value]||'';
@@ -4616,7 +4619,7 @@ function all(){build();kindUI();fold();count();areaUI();}
 function init(){
  all();
  document.addEventListener('change',e=>{const t=e.target;if(!t)return;if(t.id==='extensionKind'||(t.closest&&t.closest('label.project-type')))setTimeout(all,0);if(t.id==='extensionException')fromOrig();});
- document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#floorRows'))count();});
+ document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#floorRows'))count();});document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#floorRows'))setTimeout(count,0);});new MutationObserver(()=>setTimeout(count,0)).observe(document.getElementById('floorRows')||document.body,{childList:true});
  const fr=$('floorRows');if(fr)new MutationObserver(count).observe(fr,{childList:true});
  const go=$('v157-go');document.addEventListener('click',e=>{if(e.target&&(e.target.id==='v157-go'||e.target.id==='bulkAdd'||e.target.id==='addFloor'))setTimeout(()=>{const d=$('v158-floors');if(d)d.open=true;},0);},true);
  const form=$('form');if(form)form.addEventListener('reset',()=>setTimeout(()=>{fromOrig();kindUI();},0));
@@ -4821,6 +4824,7 @@ function snap(){if(restoring||skip)return;try{
   n:{floor:$('floorRows')?$('floorRows').children.length:0,change:document.querySelectorAll('#change-rows .row').length},
   shown:{b:!!($('tables')&&$('tables').children.length&&vis($('result'))),c:!!($('change-result')&&!$('change-result').hidden&&$('change-output')&&$('change-output').children.length),q:!!($('v132-qout')&&$('v132-qout').children.length&&vis($('v132-quick')))},f:{}};
  roots().forEach(([k,r])=>{s.f[k]=ctrls(r).map(e=>[sig(e),(e.type==='checkbox'||e.type==='radio')?e.checked:e.value])});
+ try{s.reg=window.V198RegSnap?window.V198RegSnap():null;}catch(e){}
  localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
 const later=()=>{clearTimeout(t);t=setTimeout(snap,400)};
 ['input','change','click'].forEach(ev=>document.addEventListener(ev,later,true));
@@ -4852,6 +4856,7 @@ async function restore(){let s;try{s=JSON.parse(localStorage.getItem(KEY)||'null
    g=0;while($('change-add')&&document.querySelectorAll('#change-rows .row').length<s.n.change&&g++<60)$('change-add').click();
    apply(s);await wait(120);
   }
+  if(s.reg&&window.V198RegRestore){window.V198RegRestore(s.reg);await wait(350);}
   if(s.shown.b&&$('form'))$('form').requestSubmit();
   if(s.shown.c&&$('change-form'))$('change-form').requestSubmit();
   if(s.shown.q&&$('v132-go'))$('v132-go').click();
@@ -5135,6 +5140,51 @@ label:has(>.v193-tag){position:relative}
 body.v196-exc:not(.v196-showold) #floorRows label:has(.v157-old),body.v196-exc:not(.v196-showold) label:has(#v157-bulkOld){display:none!important}
 body.v196-exc:not(.v196-showold) #v157-reg{display:none!important}
 body.v196-exc:not(.v196-showold) #v156-floor-note{display:none!important}
+/* V198 층별 면적 */
+#v158-floors>summary{display:flex!important;align-items:center;gap:8px;flex-wrap:wrap}
+#v158-floors #v158-fsum{flex:1;min-width:0}
+#v158-floors .v198-badge{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:99px;background:#1d3a62;color:#cfe0f5;white-space:nowrap}
+#v158-floors .floor-heading,#v158-floors #floorHelp,#v158-floors #v156-floor-note{display:none!important}
+.v198-purpose{margin:10px 0 0;font-size:13.5px;line-height:1.55;color:#c9d6e8}
+.v198-how{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#16325a;border:1px solid #2f5a92;font-size:13.5px;line-height:1.55;color:#dfe9f6}
+.v198-how>p{margin:0}
+.v198-how b{color:#ffb38a}
+.v198-how .v198-reg{margin:8px 0 0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
+.v198-how .v198-reg>h4,.v198-how .v198-reg>.p-help,.v198-how .v198-reg>.v194-help{display:none!important}
+.v198-how .v198-reg #v157-load,.v198-how .v198-reg #v194-new-load{width:auto!important;min-height:40px;padding:8px 14px!important}
+#v196-oldtoggle{margin-top:10px}
+.v198-usehelp{margin-top:6px}
+#floorRows .floor-row.v198{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px!important;position:relative;padding:14px!important;border-radius:12px;align-items:start}
+#floorRows .floor-row.v198>*{grid-column:1/-1!important;min-width:0;margin:0!important}
+#floorRows .floor-row.v198>label.v157-old-l,#floorRows .floor-row.v198>label.v157-add-l{grid-column:auto!important}
+body.v196-exc:not(.v196-showold) #floorRows .floor-row.v198>label.v157-add-l{grid-column:1/-1!important}
+#floorRows .floor-row.v198>label{display:grid!important;gap:6px;width:auto!important}
+#floorRows .floor-row.v198 .v198-floorL{padding-right:96px}
+#floorRows .floor-row.v198 .v198-fsel{width:auto!important;min-width:150px;max-width:100%}
+#floorRows .floor-row.v198:not(.v198-manual) .v136-fc,#floorRows .floor-row.v198:not(.v198-manual) input[data-key=floor]{display:none!important}
+#floorRows .floor-row.v198.v198-manual .v136-fc>select{display:none!important}
+#floorRows .floor-row.v198.v198-ext>label:has(input[data-key=area]){display:none!important}
+#floorRows .floor-row.v198 .v198-winL>select[data-key=windowless],#floorRows .floor-row.v198 .v198-winL>small{display:none!important}
+#floorRows .floor-row.v198>button.v198-del{position:absolute!important;top:10px;right:10px;width:auto!important;min-height:0!important;padding:6px 4px!important;background:none!important;border:0!important;box-shadow:none!important;color:#9fb3cc!important;text-decoration:underline;font-size:13px!important;font-weight:500!important}
+.v198-tot{font-size:13.5px;color:#9fe0b8;line-height:1.5}
+.v198-seg{display:flex;width:100%}
+.v198-seg button{flex:1;min-height:40px!important;margin:0!important;padding:6px 0!important;border:1px solid #33527d!important;background:#0b1a30!important;color:#dfe9f6!important;font-size:14px!important;font-weight:500!important;border-radius:0!important;box-shadow:none!important}
+.v198-seg button+button{border-left:0!important}
+.v198-seg button:first-child{border-radius:8px 0 0 8px!important}.v198-seg button:last-child{border-radius:0 8px 8px 0!important}
+.v198-seg button.on{background:#2a4d80!important;color:#fff!important;font-weight:700!important}
+.v198-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.v198-bar>button{width:100%!important;margin:0!important}
+.v198-bar>button.on{background:#2a4d80!important}
+#bulkFloors.v198-bulk>summary{display:none!important}
+#bulkFloors.v198-bulk[open]{margin-top:10px;padding:12px;border:1px solid #2a4670;border-radius:12px}
+@media print{.v198-seg,.v198-fsel,.v198-bar,.v198-how,.v198-purpose{display:none!important}}
+#floorRows .floor-row.v198:not(.v198-ext)>label.v157-l{display:none!important}
+#floorRows .floor-row.v198 .v198-seg button.on,#floorRows .floor-row.v198 .v198-seg button.on:hover{background:#ff7a45!important;border-color:#ff7a45!important;color:#fff!important;font-weight:700!important}
+.v198-how .v198-reg p:empty,.v198-how .v198-reg [hidden]{display:none!important}
+.v198-how .v198-reg>p{margin:6px 0 0!important}
+.v198-bar>button{font-size:14px!important;padding:8px 6px!important;white-space:nowrap}
+#floorRows .floor-row.v198 .v198-fsel{width:min(260px,100%)!important;justify-self:start}
+#floorRows .floor-row.v198 .v198-seg{max-width:420px}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5515,10 +5565,11 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   const r=$('v85-reg');if(r)r.open=false;
  }
  function onApplied(e){
-  item=(e.detail&&e.detail.it)||null;filled=[];candKey='';
+  item=(e.detail&&e.detail.it)||null;filled=[];candKey='';const R=e.detail&&e.detail.restore;
   const reg=$('v85-reg');
   setTimeout(()=>{ // V85·V142·V193 채움 뒤
    // apply()가 상세 칸을 덮어쓴 경우도 「대장」 값으로 기록
+   if(R){R.tags.forEach(k=>{const el=R.elOf(k);if(el&&el.value!==''){tag(el);filled.push([el,el.value]);}});window.V195Last={mode:modeNow(),els:filled.filter(([el])=>el.isConnected),src:''};render();dateNote();if(reg)reg.open=false;return;}
    if(['new','full'].includes(modeNow())||true){['use','area','ground','basement'].forEach(id=>{const el=$(id);if(el&&el.value!==''){tag(el);filled.push([el,el.value]);}});}
    const q=$('v132-quick');if(q&&modeNow()==='quick')['use','area','ground','basement'].forEach(k=>{const el=q.querySelector('[data-q='+k+']');if(el&&el.value!==''){tag(el);filled.push([el,el.value]);}});
    if(modeNow()==='change')document.querySelectorAll('#change-rows [data-k=before]').forEach(el=>{if(el.value){tag(el);filled.push([el,el.value]);}});
@@ -5531,6 +5582,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
  document.addEventListener('input',e=>{if(!e.isTrusted)return;const l=e.target.closest&&e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
  document.addEventListener('change',e=>{if(!e.isTrusted||e.target.tagName!=='SELECT')return;const l=e.target.closest('label');const t=l&&l.querySelector(':scope>.v193-tag');if(t)t.remove();},true);
  new MutationObserver(()=>{const L=window.V195Last;if(!L||!item)return;document.querySelectorAll('.ur-head').forEach(h=>{if(h.querySelector('.v193-src-chip'))return;const inEra=!!h.closest('#history-catalog-results');const els=filled.filter(([el])=>el.isConnected&&(inEra?!!el.closest('#history-catalog-form'):!el.closest('#history-catalog-form')));if(!els.length||!els.every(([el,v])=>el.value===v))return;const c=document.createElement('span');c.className='v193-src-chip';c.textContent='건축물대장 기준';h.append(c);});}).observe(document.body,{childList:true,subtree:true});
+ window.V195Item=()=>item;
  function start(){
   if(!build()){setTimeout(start,200);return;}
   syncTabs();render();dateNote();
@@ -5576,14 +5628,13 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   let t=$('v196-oldtoggle');
   if(ex){
    if(!t){t=document.createElement('div');t.id='v196-oldtoggle';t.className='v196-excbox';
-    t.innerHTML='<b>기존 부분과 구획됨 — 증축 부분만 증축 당시 기준을 적용합니다.</b><span>증축하는 층과 그 층의 증축 면적만 넣으면 됩니다. 기존 층 면적은 넣지 않아도 됩니다.</span><label class="v196-chk"><input type="checkbox" id="v196-showold"> 기존 층 면적도 함께 입력 (선택)</label>';
+    t.innerHTML='<b>기존 부분과 구획됨 — 증축 부분만 판정합니다.</b><span>증축하는 층과 그 층의 증축 면적만 넣으세요.</span><label class="v196-chk"><input type="checkbox" id="v196-showold"> 기존 층 면적도 함께 입력 (선택)</label>';
     const fr=$('v158-floors');const anchor=fr?fr.querySelector('.floor-heading')||fr.querySelector('summary'):$('floorRows');(anchor&&anchor.nextSibling?anchor.parentNode.insertBefore(t,anchor.nextSibling):($('floorRows')||document.body).before(t));
     $('v196-showold').addEventListener('change',()=>document.body.classList.toggle('v196-showold',$('v196-showold').checked));}
    t.hidden=false;if(anyOld&&!$('v196-showold').checked){$('v196-showold').checked=true;}
    document.body.classList.toggle('v196-showold',$('v196-showold').checked);
   }else{if(t)t.hidden=true;document.body.classList.remove('v196-showold');}
-  // 증축 층 행: 기존 면적 비어 있으면 0으로 간주되도록 채움
-  if(ex&&!$('v196-showold').checked)document.querySelectorAll('#floorRows .floor-row').forEach(r=>{const o=r.querySelector('.v157-old');if(o&&o.value===''){o.value='0';o.dispatchEvent(new Event('input',{bubbles:true}));}});
+ 
  }
  function start(){
   document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='extensionFloors'||t.closest('#floorRows'))setTimeout(raise,0);},true);
@@ -5657,6 +5708,134 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   ['v85-applied','v195-clear'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(run,400)));
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,120));else setTimeout(start,120);
+})();
+</script>
+<script id="v198-floors-ui">/* V198: 층별 면적 칸 정리 — 제목 하나·입력 층 수 배지, 층 선택 하나, 층 전체는 계산 글씨, 무창층 버튼, 일괄 추가 버튼 + 대장 건물 새로고침 복원 */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
+ const isExt=()=>{const r=document.querySelector('label.project-type input:checked');return !!r&&r.value==='증축';};
+ const exc=()=>document.body.classList.contains('v196-exc')&&!document.body.classList.contains('v196-showold');
+ const fmt=n=>(Math.round(n*100)/100).toLocaleString('ko-KR');
+ function setText(label,txt){if(!label)return;const t=[...label.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(t){if(t.nodeValue!==txt)t.nodeValue=txt;}else label.prepend(document.createTextNode(txt));}
+ /* ---------- 구역 틀 ---------- */
+ function frame(){
+  const d=$('v158-floors');if(!d)return false;const sm=d.querySelector(':scope>summary');
+  if(!$('v198-purpose')){
+   const p=document.createElement('p');p.id='v198-purpose';p.className='v198-purpose';p.textContent='안 넣어도 검토됩니다. 넣지 않은 층의 무창층·층 면적 조건은 「확인 필요」로 남습니다.';
+   const how=document.createElement('div');how.id='v198-how';how.className='v198-how';how.innerHTML='<p id="v198-howtxt">층마다 <b>기존 면적</b>과 <b>증축 면적</b>을 나눠 넣으세요. 층 전체·증축 면적 합계·증축 후 연면적은 자동 계산됩니다.</p>';
+   sm.after(p,how);
+   // 별표 2 안내는 용도 칸 아래로
+   const a=d.querySelector('p.help a[href*="bylNo=0002"]');const hp=a&&a.closest('p');const ul=$('use')&&$('use').closest('label');if(hp&&ul){hp.classList.add('v198-usehelp');ul.after(hp);}
+   // 일괄 추가 → 아래 버튼 줄
+   const add=$('addFloor'),bulk=$('bulkFloors');
+   if(add&&bulk){const bar=document.createElement('div');bar.id='v198-bar';bar.className='v198-bar';add.before(bar);
+    const bb=document.createElement('button');bb.type='button';bb.id='v198-bulkbtn';bb.className='soft';bb.textContent='같은 면적 여러 층 추가';bb.setAttribute('aria-expanded','false');
+    bar.append(add,bb);bar.after(bulk);bulk.classList.add('v198-bulk');
+    bb.addEventListener('click',()=>{bulk.open=!bulk.open;});
+    bulk.addEventListener('toggle',()=>{bb.setAttribute('aria-expanded',String(bulk.open));bb.classList.toggle('on',bulk.open);if(bulk.open)bulk.scrollIntoView({behavior:'smooth',block:'nearest'});});}
+  }
+  return true;
+ }
+ function place(){
+  const how=$('v198-how');if(!how)return;
+  ['v157-reg','v194-new'].forEach(id=>{const b=$(id);if(b&&b.parentNode!==how){how.append(b);b.classList.add('v198-reg');}});
+  const l1=$('v157-load');if(l1&&/^층별 면적 불러오기$/.test(l1.textContent))l1.textContent='대장에서 기존 층 면적 불러오기';
+  const l2=$('v194-new-load');if(l2&&/^층별 면적 불러오기$/.test(l2.textContent))l2.textContent='대장에서 층별 면적 불러오기';
+  const ext=isExt();
+  $('v198-howtxt').hidden=!ext;
+  const regOn=[$('v157-reg'),$('v194-new')].some(b=>b&&!b.hidden&&getComputedStyle(b).display!=='none');
+  how.hidden=!(ext?!exc():regOn);
+  $('v198-purpose').hidden=ext&&document.body.classList.contains('v196-exc');
+  const t=$('v196-oldtoggle'),sm=$('v158-floors').querySelector(':scope>summary');if(t&&sm&&sm.nextElementSibling!==t)sm.after(t);
+ }
+ /* ---------- 층 행 ---------- */
+ function floorOpts(input){
+  let G=num(($('ground')||{}).value),B=num(($('basement')||{}).value);if(!G&&!B){G=30;B=5;}
+  const ext=isExt(),cur=input.value,o=[['','층 선택']];
+  const top=ext?G+3:G;
+  for(let f=top;f>=1;f--)o.push([String(f),f+'층'+(ext&&f>G?' (새 층)':'')]);
+  const low=ext?B+1:B;for(let f=1;f<=low;f++)o.push([String(-f),'지하 '+f+'층'+(ext&&f>B?' (새 층)':'')]);
+  if(cur!==''&&!o.some(x=>x[0]===cur)){const n=num(cur);o.push([cur,n<0?'지하 '+(-n)+'층':n+'층']);}
+  o.push(['__m','직접 입력']);return o;
+ }
+ function syncSel(sel,input){
+  const o=floorOpts(input),sig=o.map(x=>x[0]).join(',');
+  if(sel.dataset.sig!==sig){sel.innerHTML=o.map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('');sel.dataset.sig=sig;}
+  if(sel.value!==input.value&&sel.value!=='__m')sel.value=input.value;
+ }
+ function enh(row){
+  const fin=row.querySelector('input[data-key=floor]'),win=row.querySelector('select[data-key=windowless]'),aIn=row.querySelector('input[data-key=area]');if(!fin||!win||!aIn)return;
+  if(!row.classList.contains('v198')){
+   row.classList.add('v198');
+   const fl=fin.closest('label');fl.classList.add('v198-floorL');setText(fl,'층');
+   const sel=document.createElement('select');sel.className='v198-fsel';sel.setAttribute('aria-label','층 선택');
+   const t=[...fl.childNodes].find(n=>n.nodeType===3);(t||fl.firstChild).after(sel);
+   fin.placeholder='예: 2 / 지하는 -1';
+   sel.addEventListener('focus',()=>syncSel(sel,fin));sel.addEventListener('mousedown',()=>syncSel(sel,fin));
+   sel.addEventListener('change',()=>{if(sel.value==='__m'){row.classList.add('v198-manual');setTimeout(()=>fin.focus(),0);return;}row.classList.remove('v198-manual');if(fin.value!==sel.value){fin.value=sel.value;fire(fin);}});
+   fin.addEventListener('change',()=>{syncSel(sel,fin);if(sel.value===fin.value&&fin.value!=='')row.classList.remove('v198-manual');});
+   const wl=win.closest('label');wl.classList.add('v198-winL');setText(wl,'무창층인가요?');
+   const seg=document.createElement('div');seg.className='v198-seg';seg.setAttribute('role','group');seg.setAttribute('aria-label','무창층 여부');
+   [['unknown','모름'],['no','아니요'],['yes','예']].forEach(([v,t])=>{const b=document.createElement('button');b.type='button';b.dataset.v=v;b.textContent=t;b.addEventListener('click',()=>{if(win.value!==v){win.value=v;fire(win);}paint(row);});seg.append(b);});
+   win.after(seg);win.addEventListener('change',()=>paint(row));
+   const del=[...row.children].find(x=>x.tagName==='BUTTON'&&/삭제/.test(x.textContent));if(del){del.textContent='이 층 삭제';del.classList.add('v198-del');}
+   const tot=document.createElement('p');tot.className='v198-tot';aIn.closest('label').after(tot);
+   const us=row.querySelector('.floor-use-details>summary');if(us)us.textContent='이 층에 용도가 여러 개면 (선택)';
+  }
+  paint(row);
+ }
+ function paint(row){
+  const fin=row.querySelector('input[data-key=floor]'),win=row.querySelector('select[data-key=windowless]'),aIn=row.querySelector('input[data-key=area]');
+  const sel=row.querySelector('.v198-fsel');if(sel)syncSel(sel,fin);
+  if(fin.value!==''&&sel&&sel.value!==fin.value)row.classList.add('v198-manual');
+  row.querySelectorAll('.v198-seg button').forEach(b=>b.classList.toggle('on',b.dataset.v===win.value));
+  const ext=isExt();row.classList.toggle('v198-ext',ext);
+  const aL=aIn.closest('label');
+  if(!ext){setText(aL,'층 전체 면적 (㎡)');if(aIn.placeholder!=='모르면 비워 두세요')aIn.placeholder='모르면 비워 두세요';}
+  ['.v157-old','.v157-add'].forEach(c=>{const i=row.querySelector(c);if(i&&i.placeholder!=='없으면 빈칸')i.placeholder='없으면 빈칸';});
+  const tot=row.querySelector('.v198-tot');if(!tot)return;
+  if(!ext||exc()){tot.hidden=true;return;}
+  const o=row.querySelector('.v157-old'),a=row.querySelector('.v157-add');const ov=o?o.value:'',av=a?a.value:'',on=num(ov),an=num(av),ar=num(aIn.value);
+  tot.hidden=false;
+  if(on>0&&an>0)tot.textContent='층 전체 '+fmt(on+an)+'㎡ (기존 '+fmt(on)+' + 증축 '+fmt(an)+')';
+  else if(an>0)tot.textContent='층 전체 '+fmt(an)+'㎡ (증축으로 새로 생긴 층)';
+  else if(on>0)tot.textContent='층 전체 '+fmt(on)+'㎡ (기존 '+fmt(on)+', 증축 없음)';
+  else if(ar>0)tot.textContent='층 전체 '+fmt(ar)+'㎡ (기존·증축 나눠 넣으면 증축 면적이 자동 계산됩니다)';
+  else tot.textContent='층 전체: 입력하면 자동 계산';
+ }
+ let tm=0;
+ function refresh(){tm=0;if(!frame())return;place();document.querySelectorAll('#floorRows .floor-row').forEach(enh);}
+ const later=()=>{if(!tm)tm=setTimeout(refresh,40);};
+ window.V198Refresh=refresh;
+ /* ---------- 대장 건물 보관·복원 (V171 자동 보관과 함께) ---------- */
+ function keyOf(el){if(el.id)return '#'+el.id;if(el.dataset.q)return 'q:'+el.dataset.q;if(el.matches('#change-rows [data-k=before]'))return 'c:'+[...document.querySelectorAll('#change-rows [data-k=before]')].indexOf(el);return '';}
+ function elOf(k){if(k[0]==='#')return $(k.slice(1));if(k.startsWith('q:'))return document.querySelector('#v132-quick [data-q='+k.slice(2)+']');if(k.startsWith('c:'))return document.querySelectorAll('#change-rows [data-k=before]')[Number(k.slice(2))]||null;return null;}
+ window.V198RegSnap=()=>{
+  const it=window.V195Item&&window.V195Item();if(!it)return null;
+  const tags=[...document.querySelectorAll('.v193-tag')].map(t=>{const l=t.closest('label');const c=l&&l.querySelector('input,select');return c?keyOf(c):'';}).filter(Boolean);
+  const v197={};['ground','basement'].forEach(id=>{const e=$(id);if(e&&e.dataset.v197set!==undefined)v197[id]={base:e.dataset.v197base,set:e.dataset.v197set,reg:e.dataset.v197reg};});
+  return {it,tags,v197};
+ };
+ window.V198RegRestore=r=>{
+  if(!r||!r.it)return;
+  Object.entries(r.v197||{}).forEach(([id,v])=>{const e=$(id);if(!e)return;e.dataset.v197base=v.base;e.dataset.v197set=v.set;e.dataset.v197reg=v.reg;});
+  const panel=$('v85-reg')||document.body;
+  panel.dispatchEvent(new CustomEvent('v85-applied',{bubbles:true,detail:{it:r.it,use:'',restore:{tags:r.tags||[],elOf}}}));
+ };
+ function start(){
+  refresh();
+  document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#v158-floors'))later();},true);
+  document.addEventListener('change',e=>{const t=e.target;if(!t)return;if((t.closest&&t.closest('#v158-floors,label.project-type'))||['ground','basement','extensionKind','extensionException'].includes(t.id))later();},true);
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type,.v132-tabs'))setTimeout(refresh,150);},true);
+  const fr=$('floorRows');if(fr)new MutationObserver(later).observe(fr,{childList:true});
+  new MutationObserver(later).observe(document.body,{attributes:true,attributeFilter:['class']});
+  ['v85-applied','v195-clear'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(refresh,200)));
+  ['v157-reg','v194-new'].forEach(id=>{const w=()=>{const b=$(id);if(b)new MutationObserver(later).observe(b,{attributes:true,attributeFilter:['hidden']});else setTimeout(w,500);};w();});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,150));else setTimeout(start,150);
 })();
 </script>
 </body></html>
