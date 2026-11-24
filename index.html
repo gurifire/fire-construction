@@ -3506,9 +3506,9 @@ body.v132-q #form,body.v132-q #change-module,body.v132-q #result{display:none!im
    review:rev.map(r=>({name:r.name,reason:r.reason+(r.ref?' ('+r.ref+')':'')})),
    no:nm.map(r=>({name:r.name,reason:String(r.reason).replace(/^기준 미해당 —\s*/,'').split(/\s*·\s*(?=✓)/).join('\n')})),
    note:notes.join(' ')});
-  h+='<button type="button" class="q-next" id="v132-next">상세 검색으로 이어서 하기 →</button>';
+  
   out.innerHTML=h;
-  $('v132-next').onclick=handoff;
+  
  }
  function handoff(){
   if(!last)return;const d=last.d;
@@ -4605,7 +4605,7 @@ function count(){
  const pos=v=>Number(v)>0;
  const rows=[...document.querySelectorAll('#floorRows .floor-row')].filter(r=>{const f=r.querySelector('input[data-key=floor]');if(!f||f.value===''||Number(f.value)===0)return false;const v=k=>(r.querySelector(k)||{}).value;const w=r.querySelector('select[data-key=windowless]');return pos(v('input[data-key=area]'))||pos(v('.v157-old'))||pos(v('.v157-add'))||(w&&w.value&&w.value!=='unknown');});
  c.textContent=rows.length?rows.length+'개 층 입력됨':'입력한 층 없음';
- s.textContent='층별 면적 (선택)';
+ s.textContent=(window.V199Title?window.V199Title():'층별 면적 (선택)');
  if(rows.length&&!$('v158-floors').dataset.auto){$('v158-floors').open=true;$('v158-floors').dataset.auto='1';}
 }
 window.V158ExcLabel=()=>LABEL[($('extensionException')||{}).value]||'';
@@ -5185,6 +5185,46 @@ body.v196-exc:not(.v196-showold) #floorRows .floor-row.v198>label.v157-add-l{gri
 .v198-bar>button{font-size:14px!important;padding:8px 6px!important;white-space:nowrap}
 #floorRows .floor-row.v198 .v198-fsel{width:min(260px,100%)!important;justify-self:start}
 #floorRows .floor-row.v198 .v198-seg{max-width:420px}
+/* V199 */
+.v199-scope{margin:10px 0 0;font-size:13.5px;color:#c9d6e8;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v199-chip{font-weight:800;padding:4px 10px;border-radius:8px;font-size:13.5px}
+.v199-c1{background:#2a4d80;color:#fff}.v199-c2{background:#1f5a45;color:#d9ffe9}.v199-c3{background:#5a3d1f;color:#ffe3c2}
+body.v199-det #v157-reg,body.v199-det #v196-oldtoggle,body.v199-det #floorRows label:has(.v157-old),body.v199-det #floorRows .v198-tot{display:none!important}
+body.v199-det #floorRows .floor-row.v198>label.v157-add-l{grid-column:1/-1!important}
+#exportActions,#change-result>.actions{display:none!important}
+.ur-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0}
+.ur-actions>button{width:100%!important;margin:0!important;min-height:44px;font-size:14px!important;padding:8px 6px!important;white-space:nowrap}
+.ur-actions>button[data-ua=print]{background:#ff7a45!important;border-color:#ff7a45!important;color:#fff!important}
+.ur-actions .ur-amsg{grid-column:1/-1;margin:0;font-size:13px;color:#9fe0b8;min-height:0}
+.ur-actions .ur-amsg:empty{display:none}
+@media (max-width:380px){.ur-actions>button{font-size:13px!important}}
+#ur-print-area{display:none}
+@media print{
+ body.ur-printing>*:not(#ur-print-area){display:none!important}
+ body.ur-printing{background:#fff!important}
+ body.ur-printing #ur-print-area{display:block!important;color:#111;font-size:10.5pt}
+ #ur-print-area .ur-pr-title{font-size:9pt;color:#555!important;margin:0 0 6px}
+ #ur-print-area .ur-pr-foot{font-size:8.5pt;color:#555!important;margin:10px 0 0}
+ #ur-print-area .ur,#ur-print-area .ur *{color:#111!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+ #ur-print-area .ur-head,#ur-print-area .ur-band,#ur-print-area .ur-tile,#ur-print-area .ur-it,#ur-print-area .ur-box,#ur-print-area .ur-fold{border:1px solid #999!important;break-inside:avoid}
+ #ur-print-area .ur-why,#ur-print-area .ur-fold>summary>span{display:none!important}
+ #ur-print-area .ur-fold-body{display:block!important}
+ #ur-print-area .ur-tag-new{background:#ffe0d1!important;border:1px solid #f26a2e!important}
+ #ur-print-area .ur-tag-cond{background:#fff3c4!important;border:1px solid #d9a400!important}
+ #ur-print-area .ur-tag-act{background:#eee!important;border:1px solid #999!important}
+ #ur-print-area .ur-L-new{border-left:5px solid #f26a2e!important}
+ #ur-print-area .ur-L-cond{border-left:5px solid #d9a400!important}
+ #ur-print-area .ur-L-act{border-left:5px solid #999!important}
+ #ur-print-area .ur-band{border-left:5px solid #555!important}
+ #ur-print-area .ur-actions{display:none!important}
+ #ur-print-area .ur-f-no .ur-fold-body,#ur-print-area .ur-fold-body:has(>.ur-frow){display:flex!important;flex-wrap:wrap;gap:2px 0}
+ #ur-print-area .ur-frow{display:inline!important;border:0!important;padding:0!important;margin:0!important}
+ #ur-print-area .ur-frow>b{font-weight:normal!important}
+ #ur-print-area .ur-frow:not(:last-child)>b::after{content:', '}
+ #ur-print-area .ur-frow>span{display:none!important}
+ @page{margin:14mm}
+}
+body.v199-det #v198-how{display:block!important}
 </style>
 <script id="v175-sections-js">/* V175: 용도변경 결과를 '공사·착공신고 판단 / 설치해야 할 소방시설 / 참고'로 이름 붙여 구분 */
 (function(){
@@ -5333,7 +5373,7 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
    cond:ex.cond.filter(c=>!dropped.has(c.name)),
    review:rows.filter(r=>r.st==='review').map(r=>{const ps=[...new Set(r.reason.split(' / ').map(x=>x.trim()).filter(Boolean))];let t=ps.filter(x=>/^필요 자료|^남은 확인/.test(x)).slice(0,2);if(!t.length)t=ps.slice(0,2);t=t.join(' / ');if(t.length>160)t=t.slice(0,158)+'…';return {name:r.name,reason:t};}),
    no:rows.filter(r=>r.st==='no').map(r=>({name:r.name,reason:r.reason})),
-   note:'시설을 누르면 공사 판단·설치 근거·설치 시 확인사항이 펼쳐집니다. 인쇄·공문용 표 복사는 기존 표 형식으로 나갑니다.'});
+   note:'시설을 누르면 공사 판단·설치 근거·설치 시 확인사항이 펼쳐집니다.'});
   let box=root.querySelector(':scope>#ur-detail,:scope>.ur-detail');if(box)box.remove();
   box=document.createElement('div');box.className='ur-detail';if(!isChange)box.id='ur-detail';box.innerHTML=html;
   const v89=root.querySelector('details.v89-check');const fb=box.querySelector('.ur-f-chk .ur-fold-body');
@@ -5836,6 +5876,165 @@ if(D){for(const [day,subs] of Object.entries(X.subs)){const key='v179_'+day;D.a[
   ['v157-reg','v194-new'].forEach(id=>{const w=()=>{const b=$(id);if(b)new MutationObserver(later).observe(b,{attributes:true,attributeFilter:['hidden']});else setTimeout(w,500);};w();});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,150));else setTimeout(start,150);
+})();
+</script>
+<script id="v199-scope-export">/* V199: ① 증축 「검토 범위 층별 면적」 + 범위 표시(건물 전체/증축 부분만/별동만)
+   ② 결과 복사·표 복사(공문용)·인쇄를 화면 결과(.ur)와 같은 내용으로 — 다섯 검색 공통 */
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const fire=el=>{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const isExt=()=>{const r=document.querySelector('label.project-type input:checked');return !!r&&r.value==='증축';};
+ function setText(label,txt){if(!label)return;const t=[...label.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(t){if(t.nodeValue!==txt)t.nodeValue=txt;}else label.prepend(document.createTextNode(txt));}
+ /* ================= ① 검토 범위 ================= */
+ function scope(){
+  if(!isExt())return '';
+  const kind=($('extensionKind')||{}).value,link=($('v158-link')||{}).value;
+  if(kind==='detached'&&link==='none')return 'det';
+  if(kind!=='detached'&&['wall','door','low'].includes(($('v158-exc')||{}).value))return 'part';
+  return 'whole';
+ }
+ const SC={whole:['건물 전체 (기존 + 증축)','v199-c1'],part:['증축 부분만','v199-c2'],det:['별동만 (기존 건물 제외)','v199-c3']};
+ window.V199Title=()=>isExt()?'검토 범위 층별 면적 (선택)':'층별 면적 (선택)';
+ const HOW_WHOLE='층마다 <b>기존 면적</b>과 <b>증축 면적</b>을 나눠 넣으세요. 층 전체·증축 면적 합계·증축 후 연면적은 자동 계산됩니다.';
+ const HOW_DET='새로 짓는 별동의 층과 <b>바닥면적</b>만 넣으세요. 기존 건물 면적은 넣지 않습니다.';
+ let lastSc=null;
+ function scopeUI(){
+  const d=$('v158-floors');if(!d)return;const sm=d.querySelector(':scope>summary');
+  const fs=$('v158-fsum');if(fs){const t=window.V199Title();if(fs.textContent!==t)fs.textContent=t;}
+  let el=$('v199-scope');
+  if(!el){el=document.createElement('p');el.id='v199-scope';el.className='v199-scope';sm.after(el);}
+  const sc=scope();
+  if(sm.nextElementSibling!==el)sm.after(el);
+  el.hidden=!sc;if(sc)el.innerHTML='검토 범위 <span class="v199-chip '+SC[sc][1]+'">'+SC[sc][0]+'</span>';
+  document.body.classList.toggle('v199-det',sc==='det');
+  const how=$('v198-howtxt');if(how){const h=sc==='det'?HOW_DET:HOW_WHOLE;if(how.innerHTML!==h)how.innerHTML=h;}
+  // 별동만: 기존 면적은 숨기고 값은 잠시 보관(되돌리면 복원)
+  if(sc!==lastSc){
+   document.querySelectorAll('#floorRows .v157-old').forEach(o=>{
+    if(sc==='det'&&o.value!==''){o.dataset.v199old=o.value;o.value='';fire(o);}
+    else if(sc!=='det'&&lastSc==='det'&&o.dataset.v199old&&o.value===''){o.value=o.dataset.v199old;delete o.dataset.v199old;fire(o);}
+   });
+   lastSc=sc;
+  }
+  document.querySelectorAll('#floorRows .floor-row').forEach(r=>{
+   const a=r.querySelector('.v157-add');if(!a)return;const l=a.closest('label');
+   if(l){if(!l.dataset.v199t){const t=[...l.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());l.dataset.v199t=t?t.nodeValue:'증축 면적 (㎡)';}
+    setText(l,sc==='det'?'층 바닥면적 (㎡)':l.dataset.v199t);}
+   const tot=r.querySelector('.v198-tot');if(tot&&sc==='det')tot.hidden=true;
+  });
+ }
+ /* ================= ② 결과 복사·표·인쇄 ================= */
+ const tx=e=>e?e.textContent.replace(/\s+/g,' ').trim():'';
+ const REF1=/(별표\s*\d+\s*제\s*\d+\s*호\s*[가-힣]목(?:\s*\d\))?|별표\s*\d+\s*제\s*\d+\s*호)/,REF2=/(§\s*\d+[①-⑮]?(?:\s*\d+호)?)/;
+ function parse(root){
+  const o={head:tx(root.querySelector('.ur-head>b')),sub:tx(root.querySelector('.ur-head>span')),band:null,groups:[],boxes:[],folds:[],note:tx(root.querySelector('.ur-foot'))};
+  const it2=e=>e?((e.innerText||e.textContent).replace(/\s*\n\s*/g,' ').replace(/\s+/g,' ').trim()):'';const b=root.querySelector('.ur-band');if(b)o.band={title:it2(b.querySelector('b')),text:it2(b.querySelector('span')),small:it2(b.querySelector('small'))};
+  const tiles=[...root.querySelectorAll('.ur-tile')].map(t=>tx(t.querySelector('b')).replace(/개$/,'')+'|'+tx(t.querySelector('span')));o.tiles=tiles;
+  let cur=null;
+  for(const el of root.children){
+   if(el.classList.contains('ur-grp')){const tag=tx(el.querySelector('.ur-tag'));cur={tag,desc:tx(el.querySelector('small')),items:[]};o.groups.push(cur);continue;}
+   if(el.classList.contains('ur-list')){if(!cur||cur.done){cur={tag:'',desc:'',items:[]};o.groups.push(cur);}
+    el.querySelectorAll(':scope>.ur-it').forEach(it=>{
+     const name=tx(it.querySelector('.ur-l1 b'));let act='',range='',ref='';const ex=!!it.querySelector('.ur-exm');
+     const l2=it.querySelector('.ur-l2');let k='';
+     if(l2)for(const c of l2.children){if(c.classList.contains('ur-k')){k=tx(c);continue;}if(c.classList.contains('ur-v')){const v=tx(c);if(k==='설치범위')range=v;else if(k==='근거')ref=v;else act=v;k='';}}
+     if(!ref){const w=it.querySelector('.ur-why');const t=w?w.textContent:'';const m=t.match(REF1)||t.match(REF2);if(m)ref=m[1].replace(/\s+/g,' ');}
+     cur.items.push({name,act,range,ref,ex});
+    });cur.done=true;continue;}
+   if(el.classList.contains('ur-box')){const h=el.querySelector('h5');const title=h?[...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim():'';
+    const rows=[...el.querySelectorAll('.ur-row')].map(r=>({a:tx(r.querySelector('b')),b:tx(r.querySelector('span')),c:tx(r.querySelector('small'))}));if(rows.length)o.boxes.push({title,rows});continue;}
+   if(el.classList.contains('ur-fold')){const s=el.querySelector('summary');const title=s?[...s.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim():'';
+    let items=[...el.querySelectorAll('.ur-frow')].map(r=>({a:tx(r.querySelector('b')),b:tx(r.querySelector('span'))}));
+    if(!items.length){const body=el.querySelector('.ur-fold-body');const heads=body?[...body.querySelectorAll('summary,b,strong,li')].map(tx).filter(t=>t&&t.length<60):[];items=[...new Set(heads)].filter(t=>!/^[①-⑳]/.test(t)).slice(0,30).map(a=>({a:a.replace(/\s*→\s*/,' → '),b:''}));o.lines=true;}
+    const cnt=tx(s&&s.querySelector('em'));o.folds.push({title,cnt,items,lines:!!o.lines});o.lines=false;}
+  }
+  return o;
+ }
+ const today=()=>{const d=new Date();return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.';};
+ const gname=g=>g.tag?(g.tag+(g.desc?' ('+g.desc+')':'')):'설치 대상';
+ function toText(o){
+  const L=['[소방시설 검토 결과] '+today()+' 출력',''];
+  L.push(o.head);if(o.sub)L.push(o.sub);
+  if(o.band){L.push('','■ '+o.band.title);if(o.band.text)L.push('  '+o.band.text);if(o.band.small)L.push('  '+o.band.small);}
+  const n=o.groups.reduce((a,g)=>a+g.items.length,0);
+  L.push('','■ 설치 대상 '+n+'개');
+  o.groups.forEach(g=>{if(!g.items.length)return;if(g.tag)L.push(' ['+g.tag+'] '+(g.desc||'')+' '+g.items.length+'개');
+   g.items.forEach(i=>L.push('  - '+i.name+(i.act||i.range?': ':'')+[i.act,i.range?'설치범위 '+i.range:''].filter(Boolean).join(' · ')+(i.ref?' ('+i.ref+')':'')+(i.ex?' [면제 가능]':'')));});
+  if(!n)L.push('  설치 대상으로 확인된 시설 없음');
+  o.boxes.forEach(bx=>{L.push('','■ '+bx.title);bx.rows.forEach(r=>L.push('  - '+r.a+' '+r.b+(r.c?' ('+r.c+')':'')));});
+  o.folds.forEach(f=>{if(!f.items.length&&!f.cnt)return;L.push('','■ '+f.title+' '+(f.cnt||f.items.length)+'개');if(f.items.length){if(f.lines)f.items.forEach(i=>L.push('  - '+i.a));else L.push('  '+f.items.map(i=>i.a).join(', '));}});
+  L.push('','※ 검토를 돕는 참고 자료입니다. 면제·대체·경과조치와 화재안전기준은 담당자가 법령으로 확인합니다.');
+  return L.join('\n');
+ }
+ const TD='border:1px solid #000;padding:3px 6px;font-size:10pt;vertical-align:middle;';
+ const TH=TD+'background:#e8e8e8;font-weight:bold;text-align:center;';
+ function toTable(o){
+  let rows=[];o.groups.forEach(g=>g.items.forEach(i=>rows.push([g.tag,i.name,i.act,i.range,i.ref+(i.ex?' / 면제 가능':'')])));
+  const HD=['구분','시설','조치','설치범위','근거'];const keep=HD.map((_,c)=>c===1||rows.some(r=>r[c]));const cols=HD.filter((_,c)=>keep[c]);rows=rows.map(r=>r.filter((_,c)=>keep[c]));
+  let h='<meta charset="utf-8"><p><b>소방시설 검토 결과</b> ('+esc(today())+')</p><p>'+esc(o.head)+(o.sub?'<br>'+esc(o.sub):'')+'</p>';
+  if(o.band)h+='<p><b>'+esc(o.band.title)+'</b>'+(o.band.text?'<br>'+esc(o.band.text):'')+'</p>';
+  h+='<table border="1" cellspacing="0" cellpadding="3" style="border-collapse:collapse;"><tr>'+cols.map(t=>'<th style="'+TH+'">'+t+'</th>').join('')+'</tr>';
+  h+=rows.length?rows.map(r=>'<tr>'+r.map((c,i)=>'<td style="'+TD+(i===0&&keep[0]?'text-align:center;':'')+'">'+esc(c||'-')+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+cols.length+'" style="'+TD+'">설치 대상으로 확인된 시설 없음</td></tr>';
+  h+='</table>';
+  o.boxes.forEach(bx=>{h+='<p><b>'+esc(bx.title)+'</b><br>'+bx.rows.map(r=>esc(r.a+' '+r.b+(r.c?' ('+r.c+')':''))).join('<br>')+'</p>';});
+  o.folds.forEach(f=>{if(!f.items.length)return;h+='<p><b>'+esc(f.title)+' '+esc(f.cnt||f.items.length)+'개</b><br>'+(f.lines?f.items.map(i=>'· '+esc(i.a)).join('<br>'):esc(f.items.map(i=>i.a).join(', ')))+'</p>';});
+  h+='<p>※ 검토를 돕는 참고 자료입니다. 면제·대체·경과조치와 화재안전기준은 담당자가 법령으로 확인합니다.</p>';
+  const P=['소방시설 검토 결과 ('+today()+')','',o.head,o.sub||''];if(o.band)P.push(o.band.title,o.band.text||'');
+  P.push('',cols.join('\t'));rows.forEach(r=>P.push(r.map(c=>c||'-').join('\t')));
+  o.boxes.forEach(bx=>{P.push('',bx.title);bx.rows.forEach(r=>P.push(r.a+' '+r.b));});
+  o.folds.forEach(f=>{if(!f.items.length)return;P.push('',f.title+' '+(f.cnt||f.items.length)+'개');if(f.lines)f.items.forEach(i=>P.push('· '+i.a));else P.push(f.items.map(i=>i.a).join(', '));});
+  return {html:h,plain:P.join('\n')};
+ }
+ async function copyRich(html,plain){
+  try{if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);return true;}}catch(e){}
+  const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;';d.innerHTML=html;document.body.append(d);
+  const r=document.createRange();r.selectNodeContents(d);const s=getSelection();s.removeAllRanges();s.addRange(r);let ok=false;try{ok=document.execCommand('copy');}catch(e){}s.removeAllRanges();d.remove();return ok;
+ }
+ async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true;}catch(e){}
+  const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;left:-9999px;top:0;';document.body.append(a);a.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}a.remove();return ok;
+ }
+ function doPrint(root){
+  let area=$('ur-print-area');if(area)area.remove();
+  area=document.createElement('div');area.id='ur-print-area';
+  const hd=document.createElement('p');hd.className='ur-pr-title';hd.textContent='소방시설 검토 결과 · '+today()+' 출력';
+  const c=root.cloneNode(true);c.querySelectorAll('.ur-actions').forEach(x=>x.remove());
+  c.querySelectorAll('details.ur-fold,details.ur-cond').forEach(d=>d.open=true);c.querySelectorAll('details.ur-it').forEach(d=>d.open=false);
+  const ft=document.createElement('p');ft.className='ur-pr-foot';ft.textContent='※ 검토를 돕는 참고 자료입니다. 면제·대체·경과조치와 화재안전기준은 담당자가 법령으로 확인합니다.';
+  area.append(hd,c,ft);document.body.append(area);document.body.classList.add('ur-printing');
+  const done=()=>{document.body.classList.remove('ur-printing');const a=$('ur-print-area');if(a)a.remove();window.removeEventListener('afterprint',done);};
+  window.addEventListener('afterprint',done);
+  window.print();
+ }
+ function bar(){
+  const d=document.createElement('div');d.className='ur-actions';
+  d.innerHTML='<button type="button" data-ua="copy">결과 복사</button><button type="button" data-ua="table">표 복사 (공문용)</button><button type="button" data-ua="print">인쇄 · PDF</button><p class="ur-amsg" role="status" aria-live="polite"></p>';
+  return d;
+ }
+ document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('.ur-actions [data-ua]');if(!b)return;
+  const root=b.closest('.ur');const msg=b.parentNode.querySelector('.ur-amsg');const say=t=>{if(msg){msg.textContent=t;clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',4000);}};
+  const o=parse(root);
+  if(b.dataset.ua==='copy'){say(await copyText(toText(o))?'결과를 복사했습니다. 메신저·메모에 붙여 넣으세요.':'복사하지 못했습니다. 화면 글자를 길게 눌러 복사하세요.');}
+  else if(b.dataset.ua==='table'){const t=toTable(o);say(await copyRich(t.html,t.plain)?'표를 복사했습니다. 한글·엑셀에 붙여 넣으세요.':'복사하지 못했습니다. 인쇄 · PDF를 이용하세요.');}
+  else doPrint(root);
+ });
+ window.V199Parse=r=>parse(r);window.V199Text=r=>toText(parse(r));window.V199Table=r=>toTable(parse(r));
+ function attach(){document.querySelectorAll('.ur').forEach(r=>{if(r.closest('#ur-print-area'))return;if(!r.querySelector(':scope>.ur-actions'))r.append(bar());});}
+ /* ================= 시작 ================= */
+ let tm=0;const later=()=>{clearTimeout(tm);tm=setTimeout(()=>{scopeUI();},90);};
+ function start(){
+  scopeUI();attach();
+  document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#v158-floors'))later();},true);
+  document.addEventListener('change',later,true);
+  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('label.project-type,.v132-tabs,#addFloor,.v198-del'))setTimeout(scopeUI,200);},true);
+  const fr=$('floorRows');if(fr)new MutationObserver(later).observe(fr,{childList:true});
+  ['v85-applied','v195-clear'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(scopeUI,300)));
+  let at=0;new MutationObserver(()=>{clearTimeout(at);at=setTimeout(attach,50);}).observe(document.body,{childList:true,subtree:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,200));else setTimeout(start,200);
 })();
 </script>
 </body></html>
