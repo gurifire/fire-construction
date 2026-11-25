@@ -1,6 +1,6 @@
 {
-  "name": "소방시설 검토",
-  "short_name": "소방시설 검토",
+  "name": "소방시설 바로검토",
+  "short_name": "소방시설 바로검토",
   "start_url": "./",
   "scope": "./",
   "display": "browser",
